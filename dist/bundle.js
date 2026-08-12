@@ -530,7 +530,7 @@ var Incremancer;
             }), y = new PIXI.Sprite(f), y.visible = !1, y.alpha = 0, m.addChild(y), c.addChild(u), c.addChild(p), c.addChild(g), c.addChild(b), e.stage.addChild(c), e.stage.addChild(m), c.interactive = !0, c.interactiveChildren = !1, c.on("pointerdown", z), c.on("pointerup", I), c.on("pointerupoutside", I), c.on("pointermove", H), c.on("click", E), c.on("tap", E), document.getElementsByTagName("canvas")[0].onwheel = L, document.getElementsByTagName("canvas")[0].oncontextmenu = function(e) {
               e.preventDefault()
             }
-          }(e), e.loader.add("outerShadow", "sprites/environment/outer-shadow.jpg").add("sandstoneGround", "sprites/environment/sandstone-ground-v1.jpg").add("sandstoneBuildingFloor", "sprites/environment/sandstone-building-floor-v1.jpg").add("sandstoneBuildingWall", "sprites/environment/sandstone-building-wall-v1.jpg").add("civilianWalk", "sprites/dark-city-civilian-walk-v1.png").add("medicWalk", "sprites/dark-city-medic-walk-v1.png").add("enforcerWalk", "sprites/dark-city-enforcer-walk-v1.png").add("droppedBoneHd", "sprites/dropped-bone-v1.png").add("graveyardHdStage1", "sprites/graveyard-hd-stage1-v1.png").add("graveyardHdStage2", "sprites/graveyard-hd-stage2-v1.png").add("graveyardHdStage3", "sprites/graveyard-hd-stage3-v1.png").add("graveyardHdStage4", "sprites/graveyard-hd-stage4-v1.png").add("graveyardHdStage5", "sprites/graveyard-hd-stage5-v1.png").add("sprites/megagraveyard.png").add("sprites/graveyard.json").add("sprites/dark-city-npcs.json?v=v1.2.3-brighter").add("sprites/dark-city-foliage.json?v=v1.2.3-brighter").add("sprites/dogs.json").add("sprites/army.json").add("sprites/zombie.json").add("sprites/golem.json").add("sprites/bonecollector.json").add("sprites/harpy.json").add("sprites/objects2.json").add("sprites/fenceposts.json").add("sprites/fortress.json").add("sprites/tank.json").add("sprites/skeleton.json").add("sprites/necromage-hd.json").add("sprites/shadow-humanoid.json?v=v1.1.4-shadow-cursor").load((function() {
+          }(e), e.loader.add("outerShadow", "sprites/environment/outer-shadow.jpg").add("sandstoneGround", "sprites/environment/sandstone-ground-v1.jpg").add("sandstoneBuildingFloor", "sprites/environment/sandstone-building-floor-v1.jpg").add("sandstoneBuildingWall", "sprites/environment/sandstone-building-wall-v1.jpg").add("civilianWalk", "sprites/dark-city-civilian-walk-v1.png").add("medicWalk", "sprites/dark-city-medic-walk-v1.png").add("enforcerWalk", "sprites/dark-city-enforcer-walk-v1.png").add("droppedBoneHd", "sprites/dropped-bone-v1.png").add("graveyardHdStage1", "sprites/graveyard-hd-stage1-v1.png").add("graveyardHdStage2", "sprites/graveyard-hd-stage2-v1.png").add("graveyardHdStage3", "sprites/graveyard-hd-stage3-v1.png").add("graveyardHdStage4", "sprites/graveyard-hd-stage4-v1.png").add("graveyardHdStage5", "sprites/graveyard-hd-stage5-v1.png").add("sprites/megagraveyard.png").add("sprites/graveyard.json").add("sprites/dark-city-npcs.json?v=v1.2.3-brighter").add("sprites/dark-city-foliage.json?v=v1.2.3-brighter").add("sprites/dogs.json").add("sprites/army.json").add("sprites/zombie.json").add("sprites/golem.json").add("sprites/bonecollector-hd-v1.json?v=v0.1.0-bone-collector-v1").add("sprites/harpy.json").add("sprites/objects2.json").add("sprites/fenceposts.json").add("sprites/fortress.json").add("sprites/tank.json").add("sprites/skeleton.json").add("sprites/necromage-hd.json").add("sprites/shadow-humanoid.json?v=v1.1.4-shadow-cursor").load((function() {
             const t = e.loader.resources.outerShadow.texture, s = e.loader.resources.sandstoneGround.texture;
             t.baseTexture.scaleMode = PIXI.SCALE_MODES.LINEAR, t.baseTexture.wrapMode = PIXI.WRAP_MODES.MIRRORED_REPEAT, s.baseTexture.scaleMode = PIXI.SCALE_MODES.LINEAR, s.baseTexture.wrapMode = PIXI.WRAP_MODES.REPEAT, v.app = e, N(), q = new PIXI.TilingSprite(t, D.x, D.y), q.tileScale.set(.55), e.stage.addChildAt(q, 0), x = new PIXI.TilingSprite(s), x.texture.baseTexture.mipmap = PIXI.MIPMAP_MODES.OFF, x.tileScale.set(.42), x.width = P.x, x.height = P.y, GameModel.getInstance().grassSprite = x, x.tint = GameModel.getInstance().persistentData.backgroundTint || 16777215, u.addChild(x), v.setupLevel(), setTimeout((function() {
               Z(!0)
@@ -5268,15 +5268,22 @@ var Incremancer;
    * ================================================================ */
   class BoneCollectors {
     constructor() {
-      if (this.sprites = [], this.maxSpeed = 125, this.scaling = 2, this.collectDistance = 10, this.fastDistance = i, BoneCollectors.instance) return BoneCollectors.instance;
+      if (this.sprites = [], this.maxSpeed = 125, this.scaling = .1, this.collectDistance = 10, this.fastDistance = i, this.directions = ["e", "se", "s", "sw", "w", "nw", "n", "ne"], BoneCollectors.instance) return BoneCollectors.instance;
       BoneCollectors.instance = this
     }
     populate() {
       if (this.graveyard = new Graveyard, this.gameModel = GameModel.getInstance(), this.bones = new Bones, !this.texture) {
-        this.texture = [];
-        for (let e = 0; e < 2; e++) this.texture.push(PIXI.Texture.from("bonecollector" + (e + 1) + ".png"))
+        this.texture = {};
+        for (let e = 0; e < this.directions.length; e++) {
+          const t = this.directions[e];
+          this.texture[t] = [];
+          for (let e = 1; e <= 4; e++) {
+            const s = PIXI.Texture.from("bonecollector-" + t + "-" + e + ".png");
+            s.baseTexture.scaleMode = PIXI.SCALE_MODES.LINEAR, this.texture[t].push(s)
+          }
+        }
       }
-      for (let e = 0; e < this.sprites.length; e++) this.sprites[e].boneList = [], this.sprites[e].target = !1, this.sprites[e].position.set(this.graveyard.sprite.x, this.graveyard.sprite.y), this.sprites[e].state = We.collecting
+      for (let e = 0; e < this.sprites.length; e++) this.sprites[e].boneList = [], this.sprites[e].target = !1, this.sprites[e].position.set(this.graveyard.sprite.x, this.graveyard.sprite.y), this.sprites[e].state = We.collecting, this.sprites[e].direction = "s", this.sprites[e].textures = this.texture.s, this.sprites[e].gotoAndStop(0)
     }
     addAndRemoveBoneCollectors() {
       if (this.sprites.length > this.gameModel.persistentData.boneCollectors) {
@@ -5286,8 +5293,8 @@ var Incremancer;
         this.gameModel.addBones(e.bones), g.removeChild(e)
       }
       if (this.sprites.length < this.gameModel.persistentData.boneCollectors) {
-        const e = new Ye(this.texture);
-        e.animationSpeed = .2, e.anchor.set(.5, 1), e.position.set(this.graveyard.sprite.x, this.graveyard.sprite.y), e.zIndex = e.position.y, e.visible = !0, e.scale.set(Math.random() > .5 ? this.scaling : -1 * this.scaling, this.scaling), e.xSpeed = 0, e.ySpeed = 0, e.bones = 0, e.speedFactor = 0, e.state = We.collecting, e.play(), e.boneList = [], this.sprites.push(e), g.addChild(e)
+        const e = new Ye(this.texture.s);
+        e.animationSpeed = .12, e.anchor.set(.5, 1), e.position.set(this.graveyard.sprite.x, this.graveyard.sprite.y), e.zIndex = e.position.y, e.visible = !0, e.scale.set(this.scaling), e.roundPixels = !1, e.direction = "s", e.xSpeed = 0, e.ySpeed = 0, e.bones = 0, e.speedFactor = 0, e.state = We.collecting, e.play(), e.boneList = [], this.sprites.push(e), g.addChild(e)
       }
     }
     update(e) {
@@ -5327,7 +5334,11 @@ var Incremancer;
         r = Math.abs(i);
       if (0 == Math.max(a, r)) return;
       let n = 1 / Math.max(a, r);
-      n *= 1.29289 - (a + r) * n * .29289, e.xSpeed = s * n * this.maxSpeed * e.speedFactor, e.ySpeed = i * n * this.maxSpeed * e.speedFactor, e.position.x += e.xSpeed * t, e.position.y += e.ySpeed * t, e.zIndex = e.position.y
+      n *= 1.29289 - (a + r) * n * .29289, e.xSpeed = s * n * this.maxSpeed * e.speedFactor, e.ySpeed = i * n * this.maxSpeed * e.speedFactor;
+      let o = Math.round(Math.atan2(e.ySpeed, e.xSpeed) / (Math.PI / 4));
+      o < 0 && (o += 8);
+      const l = this.directions[o % 8];
+      e.direction !== l && (e.direction = l, e.textures = this.texture[l]), e.play(), e.position.x += e.xSpeed * t, e.position.y += e.ySpeed * t, e.zIndex = e.position.y
     }
   }
   var Zt;
