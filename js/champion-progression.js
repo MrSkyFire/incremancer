@@ -137,6 +137,9 @@
     controller.skeletonMenu.spellProgression = function () {
       return necro.spellProgression();
     };
+    controller.skeletonMenu.manualDurationBonus = function () {
+      return necro.manualDurationBonus();
+    };
     controller.skeletonMenu.xpPercent = function () {
       return Math.min(100, Math.round(100 * necro.persistent.killProgress / necro.killsForNextLevel()));
     };
@@ -148,24 +151,22 @@
       var title = hold.querySelector(".shop-title h2");
       if (!title) return;
 
-      // Rename the character in the existing menu without rebuilding the bundled template.
-      var textNodes = title.childNodes;
-      for (var n = 0; n < textNodes.length; n++) {
-        if (textNodes[n].nodeType === 3 && /Skeleton Champion/i.test(textNodes[n].nodeValue || "")) {
-          textNodes[n].nodeValue = (textNodes[n].nodeValue || "").replace(/Skeleton Champion/gi, "NecroMage");
-        }
-      }
-
       var button = title.querySelector("[data-champion-progression-tab]");
       if (!button) {
         button = document.createElement("button");
         button.setAttribute("data-champion-progression-tab", "1");
         button.textContent = "Progression";
+        title.appendChild(button);
+      }
+
+      // Always bind our own direct tab switch. This makes the Progression tab work
+      // even if the bundled changeTab() method only knows about Inventory/Talents.
+      if (!button._necroProgressionBound) {
+        button._necroProgressionBound = true;
         button.addEventListener("click", function () {
           controller.skeletonMenu.tab = "progression";
           $rootScope.$applyAsync();
         });
-        title.appendChild(button);
       }
       button.className = controller.skeletonMenu.tab === "progression" ? "active" : "";
 
@@ -177,12 +178,6 @@
         hold.appendChild(panel);
       }
 
-      if (controller.skeletonMenu.tab !== "progression") {
-        panel.style.display = "none";
-        return;
-      }
-
-      panel.style.display = "block";
       var needed = necro.killsForNextLevel();
       var progress = necro.persistent.killProgress || 0;
       var total = necro.persistent.totalKills || 0;
@@ -202,7 +197,11 @@
         }
       }
       html += "</ul><p>Armor no longer grants automatic spell procs.</p>";
+
+      // Populate the panel on every pass, even while another tab is active.
+      // That prevents an empty panel when Angular swaps visibility before this interval runs.
       panel.innerHTML = html;
+      panel.style.display = controller.skeletonMenu.tab === "progression" ? "block" : "none";
     }
 
     ensureProgressionUI();
