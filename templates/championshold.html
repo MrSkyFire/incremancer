@@ -1,22 +1,23 @@
 
 <div class="level-select {{zm.skeletonMenu.tab == 'talents' ? 'overflow' : ''}}" ng-if="zm.skeletonMenu.isShown" id="champ-hold">
   <div class="shop-title">
-    <h2>Skeleton Champion {{zm.skeletonMenu.trophies()}}
+    <h2>NecroMage {{zm.skeletonMenu.trophies()}}
       <button ng-click="zm.skeletonMenu.changeTab('inventory')" class="{{zm.skeletonMenu.tab == 'inventory' ? 'active' : ''}}">Inventory</button>
       <button ng-click="zm.skeletonMenu.changeTab('talents')" class="{{zm.skeletonMenu.tab == 'talents' ? 'active' : ''}}">Talents</button>
+      <button data-champion-progression-tab="1" ng-click="zm.skeletonMenu.changeTab('progression')" class="{{zm.skeletonMenu.tab == 'progression' ? 'active' : ''}}">Progression</button>
     </h2>
     <button ng-click="zm.skeletonMenu.show()">Close</button>
     <div style="clear: both;"></div>
   </div>
   <div ng-if="zm.skeletonMenu.tab == 'inventory'">
     <div ng-if="zm.skeleton().skeletons == 0" class="ranges">
-      <p>The Skeleton Champion respects your strength and is willing to join you.</p>
+      <p>The NecroMage respects your strength and is willing to join you.</p>
       <p><em>Give me those trophies of yours as tribute and I will fight for you to scour the humans from this world!</em></p>
       <button ng-click="zm.skeletonMenu.acceptOffer()">Accept the offer</button>
       <button ng-click="zm.skeletonMenu.show()">Reject the offer</button>
     </div>
     <div ng-if="zm.skeletonMenu.anotherOffer()" class="ranges">
-      <p>The Skeleton Champion has another offer for you.</p>
+      <p>The NecroMage has another offer for you.</p>
       <p><em>Give me some more of those trophies and I'll work twice as hard, I promise!</em></p>
       <button ng-click="zm.skeletonMenu.acceptOffer()">Accept the offer</button>
       <button ng-click="zm.skeletonMenu.show()">Reject the offer</button>
@@ -120,8 +121,8 @@
           </div>
         </div>
       </div>
-      <p>Level: {{zm.skeleton().level}} - {{zm.skeleton().xp|whole}} / {{zm.skeletonMenu.xpForNextLevel()|whole}} xp ({{zm.skeletonMenu.xpRate()}}% xp rate)<br/>Earn xp by killing humans while the Champion is alive, higher level humans reward more xp</p>
-      <p>Increases zombie health and damage by {{zm.skeleton().level}}%, all resource generation by {{zm.skeleton().level}}%,<br/>and receive {{zm.skeletonMenu.prestigePointsPerKill()|whole}} prestige points when the Skeleton Champion lands a killing blow. (20 second cooldown)</p>    
+      <p>Level: {{zm.skeleton().level}} — {{zm.skeleton().killProgress || 0}} / {{zm.skeletonMenu.killsForNextLevel()}} kills<br/>All human kills count toward NecroMage progression.</p>
+      <p>Increases zombie health and damage by {{zm.skeleton().level}}%, all resource generation by {{zm.skeleton().level}}%,<br/>and receive {{zm.skeletonMenu.prestigePointsPerKill()|whole}} prestige points when the NecroMage lands a killing blow. (20 second cooldown)</p>    
     </div>
   </div>
   <div ng-if="zm.skeletonMenu.tab == 'talents'" class="talents">
@@ -146,6 +147,7 @@
       </div>
     </div>
   </div>
+  <div data-champion-progression-panel="1" class="ranges" ng-show="zm.skeletonMenu.tab == 'progression'"></div>
   
 </div>
 <div class="level-select" ng-if="zm.skeletonMenu.isNewGearSetShown" id="new-gear-set">
@@ -160,7 +162,7 @@
       <p class="error" ng-show="newgearset.name.$error.required || newgearset.name.$error.maxlength">The name must contain between 1 and 16 characters.</p>
     </ng-form>
     
-    <button ng-click="zm.skeletonMenu.createGearSet()" ng-disabled="!newgearset.name.$valid">Create</button>
+    <button ng-click="zm.skeletonMenu.createGearSet()" ng-disabled="!zm.skeletonMenu.newGearSetName || !newgearset.$valid">Create</button>
     <button ng-click="zm.skeletonMenu.showNewGearSet()">Cancel</button>
   </div>
 </div>
