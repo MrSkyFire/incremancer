@@ -1,4 +1,4 @@
-const FORK_VERSION = "v1.2.6";
+const FORK_VERSION = "v1.2.7";
 const FORK_VERSION_DATE = "2026-08-12";
 console.log("[Incremancer fork] " + FORK_VERSION + " (" + FORK_VERSION_DATE + ")");
 var Incremancer;
@@ -110,9 +110,9 @@ var Incremancer;
       this.previousHealth = host.health || 0;
       this.outline = new PIXI.Sprite(ShadowHumanoidAnimator.texture("S", "idle"));
       this.outline.anchor.set(.5, 360 / 384);
-      this.outline.tint = 0xff2738;
-      this.outline.alpha = .9;
-      this.outline.blendMode = PIXI.BLEND_MODES.ADD;
+      this.outline.tint = 0xff1730;
+      this.outline.alpha = 1;
+      this.outline.blendMode = PIXI.BLEND_MODES.NORMAL;
       this.sprite = new PIXI.Sprite(ShadowHumanoidAnimator.texture("S", "idle"));
       this.sprite.anchor.set(.5, 360 / 384);
       this.sprite.scale.set(ShadowHumanoidAnimator.displayScale);
@@ -184,7 +184,7 @@ var Incremancer;
       }
       this.outline.position.copyFrom(this.sprite.position);
       this.outline.rotation = this.sprite.rotation;
-      this.outline.scale.set(this.sprite.scale.x * 1.32, this.sprite.scale.y * 1.32)
+      this.outline.scale.set(this.sprite.scale.x * 1.11, this.sprite.scale.y * 1.11)
     }
   }
 
@@ -210,9 +210,9 @@ var Incremancer;
       this.previousHealth = host.health || 0;
       this.outline = new PIXI.Sprite(DarkCityNpcAnimator.texture(role, "S"));
       this.outline.anchor.set(.5, 360 / 384);
-      this.outline.tint = 0x328cff;
-      this.outline.alpha = .86;
-      this.outline.blendMode = PIXI.BLEND_MODES.ADD;
+      this.outline.tint = 0x278fff;
+      this.outline.alpha = 1;
+      this.outline.blendMode = PIXI.BLEND_MODES.NORMAL;
       this.sprite = new PIXI.Sprite(DarkCityNpcAnimator.texture(role, "S"));
       this.sprite.anchor.set(.5, 360 / 384);
       this.sprite.scale.set(DarkCityNpcAnimator.displayScale);
@@ -295,7 +295,7 @@ var Incremancer;
       }
       this.outline.position.copyFrom(this.sprite.position);
       this.outline.rotation = this.sprite.rotation;
-      this.outline.scale.set(this.sprite.scale.x * 1.3, this.sprite.scale.y * 1.3)
+      this.outline.scale.set(this.sprite.scale.x * 1.1, this.sprite.scale.y * 1.1)
     }
   }
 
