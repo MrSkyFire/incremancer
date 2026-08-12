@@ -1,25 +1,32 @@
 /* Skeleton Champion kill progression prototype.
- * Loaded after the main bundle. Keeps the experiment isolated from compiled game code.
+ * Loaded after the main bundle. Registers an Angular run hook before bootstrap.
  */
 (function () {
   "use strict";
 
-  function install() {
-    var body = angular.element(document.body);
-    var controller = body.controller && body.controller();
-    if (!controller || !controller.model || !controller.model.skeleton) {
-      setTimeout(install, 250);
-      return;
+  function findController(root) {
+    var queue = [root];
+    while (queue.length) {
+      var scope = queue.shift();
+      if (scope && scope.zm && scope.zm.model && scope.zm.model.skeleton) return scope.zm;
+      if (!scope) continue;
+      var child = scope.$$childHead;
+      while (child) {
+        queue.push(child);
+        child = child.$$nextSibling;
+      }
     }
+    return null;
+  }
 
+  function install(controller) {
     var champion = controller.model.skeleton;
-    if (champion._killProgressionInstalled) return;
+    if (!champion || champion._killProgressionInstalled) return;
     champion._killProgressionInstalled = true;
 
     var p = champion.persistent;
 
     // This fork is built around the Champion, so recruit him immediately on every save.
-    // Existing Champion saves are left intact; fresh/older saves with no Champion are promoted to one.
     if (!p.skeletons || p.skeletons < 1) {
       p.skeletons = 1;
       p.xpRate = Math.max(1, p.xpRate || 0);
@@ -73,11 +80,10 @@
         this.model.sendMessage("Skeleton Champion reached level " + this.persistent.level + "!", "chat-levelup");
       }
 
-      // A personal kill can trigger one progression spell. Dark Orb kills count too.
       this.tryProgressionSpells();
     };
 
-    // Equipment keeps its ordinary stats, but equipped spell rolls no longer cast spells.
+    // Equipment keeps its normal stats, but no longer supplies automatic spell rolls.
     var oldApplyItems = champion.applyItemUpgrades.bind(champion);
     champion.applyItemUpgrades = function () {
       oldApplyItems();
@@ -95,8 +101,7 @@
       return Math.min(100, Math.round(100 * champion.persistent.killProgress / champion.killsForNextLevel()));
     };
 
-    // The original UI hides the Champion button until allTimeHighestLevel >= 50.
-    // Add our own immediately instead of faking level-50 progression and unlocking unrelated systems.
+    // The original UI hides the Champion button until level 50. Add an early-game copy.
     function ensureChampionButton() {
       var spells = document.querySelector(".resources .spells");
       if (!spells) return;
@@ -130,11 +135,22 @@
 
     ensureChampionButton();
     setInterval(ensureChampionButton, 250);
-
     console.log("[Incremancer] Champion kill progression installed");
   }
 
-  window.addEventListener("load", function () {
-    setTimeout(install, 0);
-  });
+  // debugInfoEnabled(false) prevents angular.element(...).controller() from working.
+  // Register before bootstrap and use Angular's own root scope to locate controllerAs `zm`.
+  angular.module("zombieApp").run(["$rootScope", "$timeout", function ($rootScope, $timeout) {
+    var attempts = 0;
+    function boot() {
+      var controller = findController($rootScope);
+      if (controller) {
+        install(controller);
+        return;
+      }
+      if (++attempts < 80) $timeout(boot, 100, false);
+      else console.error("[Incremancer] Champion progression could not find ZombieController");
+    }
+    $timeout(boot, 0, false);
+  }]);
 })();
