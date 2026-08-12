@@ -1,4 +1,4 @@
-const FORK_VERSION = "v1.2.7";
+const FORK_VERSION = "v1.2.8";
 const FORK_VERSION_DATE = "2026-08-12";
 console.log("[Incremancer fork] " + FORK_VERSION + " (" + FORK_VERSION_DATE + ")");
 var Incremancer;
@@ -110,7 +110,7 @@ var Incremancer;
       this.previousHealth = host.health || 0;
       this.outline = new PIXI.Sprite(ShadowHumanoidAnimator.texture("S", "idle"));
       this.outline.anchor.set(.5, 360 / 384);
-      this.outline.tint = 0xff1730;
+      this.outline.tint = 0xff002b;
       this.outline.alpha = 1;
       this.outline.blendMode = PIXI.BLEND_MODES.NORMAL;
       this.sprite = new PIXI.Sprite(ShadowHumanoidAnimator.texture("S", "idle"));
@@ -184,7 +184,7 @@ var Incremancer;
       }
       this.outline.position.copyFrom(this.sprite.position);
       this.outline.rotation = this.sprite.rotation;
-      this.outline.scale.set(this.sprite.scale.x * 1.11, this.sprite.scale.y * 1.11)
+      this.outline.scale.set(this.sprite.scale.x * 1.2, this.sprite.scale.y * 1.2)
     }
   }
 
@@ -210,7 +210,7 @@ var Incremancer;
       this.previousHealth = host.health || 0;
       this.outline = new PIXI.Sprite(DarkCityNpcAnimator.texture(role, "S"));
       this.outline.anchor.set(.5, 360 / 384);
-      this.outline.tint = 0x278fff;
+      this.outline.tint = 0x00aaff;
       this.outline.alpha = 1;
       this.outline.blendMode = PIXI.BLEND_MODES.NORMAL;
       this.sprite = new PIXI.Sprite(DarkCityNpcAnimator.texture(role, "S"));
@@ -295,7 +295,7 @@ var Incremancer;
       }
       this.outline.position.copyFrom(this.sprite.position);
       this.outline.rotation = this.sprite.rotation;
-      this.outline.scale.set(this.sprite.scale.x * 1.1, this.sprite.scale.y * 1.1)
+      this.outline.scale.set(this.sprite.scale.x * 1.19, this.sprite.scale.y * 1.19)
     }
   }
 
@@ -520,8 +520,8 @@ var Incremancer;
             }), y = new PIXI.Sprite(f), y.visible = !1, y.alpha = 0, m.addChild(y), c.addChild(u), c.addChild(p), c.addChild(g), c.addChild(b), e.stage.addChild(c), e.stage.addChild(m), c.interactive = !0, c.interactiveChildren = !1, c.on("pointerdown", z), c.on("pointerup", I), c.on("pointerupoutside", I), c.on("pointermove", H), c.on("click", E), c.on("tap", E), document.getElementsByTagName("canvas")[0].onwheel = L, document.getElementsByTagName("canvas")[0].oncontextmenu = function(e) {
               e.preventDefault()
             }
-          }(e), e.loader.add("outerShadow", "sprites/environment/outer-shadow.jpg").add("cobblestoneGround", "sprites/environment/cobblestone-ground.jpg").add("modernBuildingFloor", "sprites/environment/modern-building-floor.jpg").add("modernBuildingWall", "sprites/environment/modern-building-wall.jpg").add("sprites/megagraveyard.png").add("sprites/graveyard.json").add("sprites/dark-city-npcs.json?v=v1.2.3-brighter").add("sprites/dark-city-foliage.json?v=v1.2.3-brighter").add("sprites/dogs.json").add("sprites/army.json").add("sprites/zombie.json").add("sprites/golem.json").add("sprites/bonecollector.json").add("sprites/harpy.json").add("sprites/objects2.json").add("sprites/fenceposts.json").add("sprites/fortress.json").add("sprites/tank.json").add("sprites/skeleton.json").add("sprites/necromage-hd.json").add("sprites/shadow-humanoid.json?v=v1.1.4-shadow-cursor").load((function() {
-            const t = e.loader.resources.outerShadow.texture, s = e.loader.resources.cobblestoneGround.texture;
+          }(e), e.loader.add("outerShadow", "sprites/environment/outer-shadow.jpg").add("sandstoneGround", "sprites/environment/sandstone-ground-v1.jpg").add("sandstoneBuildingFloor", "sprites/environment/sandstone-building-floor-v1.jpg").add("sandstoneBuildingWall", "sprites/environment/sandstone-building-wall-v1.jpg").add("sprites/megagraveyard.png").add("sprites/graveyard.json").add("sprites/dark-city-npcs.json?v=v1.2.3-brighter").add("sprites/dark-city-foliage.json?v=v1.2.3-brighter").add("sprites/dogs.json").add("sprites/army.json").add("sprites/zombie.json").add("sprites/golem.json").add("sprites/bonecollector.json").add("sprites/harpy.json").add("sprites/objects2.json").add("sprites/fenceposts.json").add("sprites/fortress.json").add("sprites/tank.json").add("sprites/skeleton.json").add("sprites/necromage-hd.json").add("sprites/shadow-humanoid.json?v=v1.1.4-shadow-cursor").load((function() {
+            const t = e.loader.resources.outerShadow.texture, s = e.loader.resources.sandstoneGround.texture;
             t.baseTexture.scaleMode = PIXI.SCALE_MODES.LINEAR, t.baseTexture.wrapMode = PIXI.WRAP_MODES.MIRRORED_REPEAT, s.baseTexture.scaleMode = PIXI.SCALE_MODES.LINEAR, s.baseTexture.wrapMode = PIXI.WRAP_MODES.REPEAT, v.app = e, N(), q = new PIXI.TilingSprite(t, D.x, D.y), q.tileScale.set(.55), e.stage.addChildAt(q, 0), x = new PIXI.TilingSprite(s), x.texture.baseTexture.mipmap = PIXI.MIPMAP_MODES.OFF, x.tileScale.set(.42), x.width = P.x, x.height = P.y, GameModel.getInstance().grassSprite = x, x.tint = GameModel.getInstance().persistentData.backgroundTint || 16777215, u.addChild(x), v.setupLevel(), setTimeout((function() {
               Z(!0)
             })), e.ticker.add((t => {
@@ -793,14 +793,14 @@ var Incremancer;
       if (this.discardedWalls.length > 0) {
         t = this.discardedWalls.pop(), t.texture = e
       } else t = new V(e);
-      return t.tileScale.set(.08), t.tint = 0xb7c2ca, t.alpha = .96, t
+      return t.tileScale.set(.08), t.tint = 0xf0c27d, t.alpha = .98, t
     }
     addModernBuildingDetails(e) {
-      const t = new PIXI.Graphics, s = e.id % 3 == 0 ? 0xd39a55 : 0x55c9bd,
+      const t = new PIXI.Graphics, s = e.id % 3 == 0 ? 0xe3ad60 : 0xa56f3d,
         i = [[-5, -5], [e.width + 1, -5], [-5, e.height + 1], [e.width + 1, e.height + 1]];
-      for (let e = 0; e < i.length; e++) t.beginFill(0x090c11, .98), t.drawRect(i[e][0], i[e][1], 4, 4), t.endFill(), t.beginFill(s, .8), t.drawRect(i[e][0] + 1.25, i[e][1] + 1.25, 1.5, 1.5), t.endFill();
+      for (let e = 0; e < i.length; e++) t.beginFill(0x3a2417, .98), t.drawRect(i[e][0], i[e][1], 4, 4), t.endFill(), t.beginFill(s, .85), t.drawRect(i[e][0] + 1.25, i[e][1] + 1.25, 1.5, 1.5), t.endFill();
       const a = e.width / 2, r = e.height / 2;
-      t.beginFill(0x05070a, .85);
+      t.beginFill(0x2a1a12, .9);
       e.entrance.north ? (t.drawRect(a - this.entranceWidth, -5, 3, 6), t.drawRect(a + this.entranceWidth - 3, -5, 3, 6)) : e.entrance.south ? (t.drawRect(a - this.entranceWidth, e.height - 1, 3, 6), t.drawRect(a + this.entranceWidth - 3, e.height - 1, 3, 6)) : e.entrance.west ? (t.drawRect(-5, r - this.entranceWidth, 6, 3), t.drawRect(-5, r + this.entranceWidth - 3, 6, 3)) : (t.drawRect(e.width - 1, r - this.entranceWidth, 6, 3), t.drawRect(e.width - 1, r + this.entranceWidth - 3, 6, 3)), t.endFill(), t.beginFill(s, .92);
       e.entrance.north ? (t.drawRect(a - this.entranceWidth + .7, -4, 1.6, 2), t.drawRect(a + this.entranceWidth - 2.3, -4, 1.6, 2)) : e.entrance.south ? (t.drawRect(a - this.entranceWidth + .7, e.height + 1, 1.6, 2), t.drawRect(a + this.entranceWidth - 2.3, e.height + 1, 1.6, 2)) : e.entrance.west ? (t.drawRect(-4, r - this.entranceWidth + .7, 2, 1.6), t.drawRect(-4, r + this.entranceWidth - 2.3, 2, 1.6)) : (t.drawRect(e.width + 1, r - this.entranceWidth + .7, 2, 1.6), t.drawRect(e.width + 1, r + this.entranceWidth - 2.3, 2, 1.6)), t.endFill(), e.structureDetails = t, e.container.addChild(t)
     }
@@ -833,7 +833,7 @@ var Incremancer;
       return this.discardedFloorSprites.length > 0 ? this.discardedFloorSprites.pop() : new PIXI.TilingSprite(PIXI.Texture.WHITE)
     }
     addBuilding(e) {
-      e.container = this.getContainer(), e.container.cacheAsBitmap = !1, e.floorSprite = this.getFloorSprite(), e.floorSprite.texture = this.buildingFloorTexture, e.floorSprite.tileScale.set(.13), e.floorSprite.tint = e.id % 2 ? 0xaeb8c2 : 0x9d98a2, e.floorSprite.alpha = .82, e.container.x = e.x, e.container.y = e.y, e.floorSprite.width = e.width, e.floorSprite.height = e.height, e.container.addChild(e.floorSprite);
+      e.container = this.getContainer(), e.container.cacheAsBitmap = !1, e.floorSprite = this.getFloorSprite(), e.floorSprite.texture = this.buildingFloorTexture, e.floorSprite.tileScale.set(.13), e.floorSprite.tint = e.id % 2 ? 0xf0d2a3 : 0xd8b681, e.floorSprite.alpha = .9, e.container.x = e.x, e.container.y = e.y, e.floorSprite.width = e.width, e.floorSprite.height = e.height, e.container.addChild(e.floorSprite);
       const r = [{
         x: e.x + e.width / 2,
         y: e.y,
@@ -941,9 +941,9 @@ var Incremancer;
     }
     populatePois() {
       if (this.setGraveyardPosition(), !this.buildingTextures) {
-        this.buildingFloorTexture = this.gameModel.app.loader.resources.modernBuildingFloor.texture, this.buildingWallTexture = this.gameModel.app.loader.resources.modernBuildingWall.texture, this.buildingFloorTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.LINEAR, this.buildingFloorTexture.baseTexture.wrapMode = PIXI.WRAP_MODES.MIRRORED_REPEAT, this.buildingWallTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.LINEAR, this.buildingWallTexture.baseTexture.wrapMode = PIXI.WRAP_MODES.MIRRORED_REPEAT, this.buildingTextures = [this.buildingWallTexture];
-        const e = this.gameModel.app.loader.resources.cobblestoneGround.texture;
-        this.roadSprite = new PIXI.TilingSprite(e), this.roadSprite.texture.baseTexture.mipmap = PIXI.MIPMAP_MODES.OFF, this.roadSprite.width = P.x, this.roadSprite.tileScale.set(.38), this.roadSprite.tint = 0x8b9098, this.roadSprite.alpha = .92, this.roadSprite.height = 96, u.addChild(this.roadSprite), this.roadSprite.visible = !1, this.roadSprite.anchor.set(0, 0)
+        this.buildingFloorTexture = this.gameModel.app.loader.resources.sandstoneBuildingFloor.texture, this.buildingWallTexture = this.gameModel.app.loader.resources.sandstoneBuildingWall.texture, this.buildingFloorTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.LINEAR, this.buildingFloorTexture.baseTexture.wrapMode = PIXI.WRAP_MODES.MIRRORED_REPEAT, this.buildingWallTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.LINEAR, this.buildingWallTexture.baseTexture.wrapMode = PIXI.WRAP_MODES.MIRRORED_REPEAT, this.buildingTextures = [this.buildingWallTexture];
+        const e = this.gameModel.app.loader.resources.sandstoneGround.texture;
+        this.roadSprite = new PIXI.TilingSprite(e), this.roadSprite.texture.baseTexture.mipmap = PIXI.MIPMAP_MODES.OFF, this.roadSprite.width = P.x, this.roadSprite.tileScale.set(.38), this.roadSprite.tint = 0xe2bd82, this.roadSprite.alpha = .96, this.roadSprite.height = 96, u.addChild(this.roadSprite), this.roadSprite.visible = !1, this.roadSprite.anchor.set(0, 0)
       }
       if (this.buildings.length > 0)
         for (let e = 0; e < this.buildings.length; e++) u.removeChild(this.buildings[e].container), this.buildings[e].walls.forEach((t => {
