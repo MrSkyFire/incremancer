@@ -7720,4 +7720,52 @@ var Incremancer;
         })))
       }
     }
-  }]).directive('shiftDeleteItem', ['$rootScope', funct
+  }]).directive('shiftDeleteItem', ['$rootScope', function(e) {
+    return {
+      restrict: "A",
+      link: function(t, s, i, a) {
+        s.bind('mouseenter', (function() {
+          Y.shift && s.addClass('shift-trash');
+        })), s.bind('mouseleave', (function() {
+          s.removeClass('shift-trash');
+        }));
+      }
+    }
+  }]).directive("droppableTarget", ["$rootScope", function(e) {
+    return {
+      restrict: "A",
+      link: function(t, s, i, a) {
+        const r = t.item.s;
+        s.bind("dragover", (function(e) {
+          return e.preventDefault && e.preventDefault(), e.dataTransfer.dropEffect = "move", !1
+        })), s.bind("dragenter", (function(e) {
+          e.target && e.target.classList && e.target.classList.contains("icon") && angular.element(e.target.parentElement).addClass("over")
+        })), s.bind("dragleave", (function(e) {
+          e.target && e.target.classList && e.target.classList.contains("icon") && angular.element(e.target.parentElement).removeClass("over")
+        })), s.bind("drop", (function(e) {
+          e.preventDefault && e.preventDefault(), e.stopPropagation && e.stopPropagation(), e.target.classList.contains("icon") && angular.element(e.target.parentElement).removeClass("over");
+          const s = e.dataTransfer.getData("text"),
+            i = t.zm.skeletonMenu.itemById(s);
+          if (i) {
+            const e = t.zm.skeletonMenu.itemType(i);
+            document.getElementsByClassName("equipped")[0].classList.remove(e)
+          }
+          t.zm.skeletonMenu.itemDropped(s, r)
+        })), e.$on("item-drag-start", (function(e, s) {
+          const i = t.zm.skeletonMenu.itemById(s);
+          if (i) {
+            const e = t.zm.skeletonMenu.itemType(i);
+            document.getElementsByClassName("equipped")[0].classList.add(e)
+          }
+        })), e.$on("item-drag-end", (function(e, s) {
+          const i = t.zm.skeletonMenu.itemById(s);
+          if (i) {
+            const e = t.zm.skeletonMenu.itemType(i);
+            document.getElementsByClassName("equipped")[0].classList.remove(e)
+          }
+        }))
+      }
+    }
+  }]), Incremancer = e
+})();
+//# sourceMappingURL=bundle.js.map
