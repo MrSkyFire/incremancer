@@ -1,4 +1,4 @@
-const FORK_VERSION = "v1.3.0";
+const FORK_VERSION = "v0.1.0";
 const FORK_VERSION_DATE = "2026-08-12";
 console.log("[Incremancer fork] " + FORK_VERSION + " (" + FORK_VERSION_DATE + ")");
 var Incremancer;
@@ -7439,7 +7439,7 @@ var Incremancer;
       }
     }, c.constructionLeadsTo = function(e) {
       return h.constructionLeadsTo(e)
-    }, c.howToPlay = ["Unified fork by smuenkel, combining CirusDane's features with FrAmed46's balance tweaks. Enjoy!", "This started as Chalice's Mod, expanded by CirusDane (called Danemancer), for incremancer - We hope you enjoy the qol changes!", "Energy refills over time. You need 10 energy to spawn a zombie by clicking on the ground.", "Hold shift or control to spawn multiple zombies with a single click.", "Whenever one of your zombies attacks a human you will collect some blood.", "Killing a human or turning them into a zombie will earn you 1 brain.", "You can spend these currencies in the shop to purchase upgrades for your zombie horde.", "Hold shift to buy the maximum affordable number of upgrades.", "The world can be dragged with the mouse to explore it. Or by using the WASD or arrow keys.", "You can zoom in and out using your mouse wheel. Pinch to zoom on mobile."], c.updateMessages = function(e) {}, c.infusionAmount = 1e3, c.infusionMax = !1, c.infuseRune = function(e, t) {
+    }, c.howToPlay = [], c.updateMessages = function(e) {}, c.infusionAmount = 1e3, c.infusionMax = !1, c.infuseRune = function(e, t) {
       if (c.infusionMax) switch (t) {
         case "blood":
           h.infuseRune(e, t, c.model.persistentData.blood);
