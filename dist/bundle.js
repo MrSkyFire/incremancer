@@ -530,7 +530,7 @@ var Incremancer;
             }), y = new PIXI.Sprite(f), y.visible = !1, y.alpha = 0, m.addChild(y), c.addChild(u), c.addChild(p), c.addChild(g), c.addChild(b), e.stage.addChild(c), e.stage.addChild(m), c.interactive = !0, c.interactiveChildren = !1, c.on("pointerdown", z), c.on("pointerup", I), c.on("pointerupoutside", I), c.on("pointermove", H), c.on("click", E), c.on("tap", E), document.getElementsByTagName("canvas")[0].onwheel = L, document.getElementsByTagName("canvas")[0].oncontextmenu = function(e) {
               e.preventDefault()
             }
-          }(e), e.loader.add("outerShadow", "sprites/environment/outer-shadow.jpg").add("sandstoneGround", "sprites/environment/sandstone-ground-v1.jpg").add("sandstoneBuildingFloor", "sprites/environment/sandstone-building-floor-v1.jpg").add("sandstoneBuildingWall", "sprites/environment/sandstone-building-wall-v1.jpg").add("civilianWalk", "sprites/dark-city-civilian-walk-v1.png").add("medicWalk", "sprites/dark-city-medic-walk-v1.png").add("enforcerWalk", "sprites/dark-city-enforcer-walk-v1.png").add("sprites/megagraveyard.png").add("sprites/graveyard.json").add("sprites/dark-city-npcs.json?v=v1.2.3-brighter").add("sprites/dark-city-foliage.json?v=v1.2.3-brighter").add("sprites/dogs.json").add("sprites/army.json").add("sprites/zombie.json").add("sprites/golem.json").add("sprites/bonecollector.json").add("sprites/harpy.json").add("sprites/objects2.json").add("sprites/fenceposts.json").add("sprites/fortress.json").add("sprites/tank.json").add("sprites/skeleton.json").add("sprites/necromage-hd.json").add("sprites/shadow-humanoid.json?v=v1.1.4-shadow-cursor").load((function() {
+          }(e), e.loader.add("outerShadow", "sprites/environment/outer-shadow.jpg").add("sandstoneGround", "sprites/environment/sandstone-ground-v1.jpg").add("sandstoneBuildingFloor", "sprites/environment/sandstone-building-floor-v1.jpg").add("sandstoneBuildingWall", "sprites/environment/sandstone-building-wall-v1.jpg").add("civilianWalk", "sprites/dark-city-civilian-walk-v1.png").add("medicWalk", "sprites/dark-city-medic-walk-v1.png").add("enforcerWalk", "sprites/dark-city-enforcer-walk-v1.png").add("droppedBoneHd", "sprites/dropped-bone-v1.png").add("graveyardHdStage1", "sprites/graveyard-hd-stage1-v1.png").add("graveyardHdStage2", "sprites/graveyard-hd-stage2-v1.png").add("graveyardHdStage3", "sprites/graveyard-hd-stage3-v1.png").add("graveyardHdStage4", "sprites/graveyard-hd-stage4-v1.png").add("graveyardHdStage5", "sprites/graveyard-hd-stage5-v1.png").add("sprites/megagraveyard.png").add("sprites/graveyard.json").add("sprites/dark-city-npcs.json?v=v1.2.3-brighter").add("sprites/dark-city-foliage.json?v=v1.2.3-brighter").add("sprites/dogs.json").add("sprites/army.json").add("sprites/zombie.json").add("sprites/golem.json").add("sprites/bonecollector.json").add("sprites/harpy.json").add("sprites/objects2.json").add("sprites/fenceposts.json").add("sprites/fortress.json").add("sprites/tank.json").add("sprites/skeleton.json").add("sprites/necromage-hd.json").add("sprites/shadow-humanoid.json?v=v1.1.4-shadow-cursor").load((function() {
             const t = e.loader.resources.outerShadow.texture, s = e.loader.resources.sandstoneGround.texture;
             t.baseTexture.scaleMode = PIXI.SCALE_MODES.LINEAR, t.baseTexture.wrapMode = PIXI.WRAP_MODES.MIRRORED_REPEAT, s.baseTexture.scaleMode = PIXI.SCALE_MODES.LINEAR, s.baseTexture.wrapMode = PIXI.WRAP_MODES.REPEAT, v.app = e, N(), q = new PIXI.TilingSprite(t, D.x, D.y), q.tileScale.set(.55), e.stage.addChildAt(q, 0), x = new PIXI.TilingSprite(s), x.texture.baseTexture.mipmap = PIXI.MIPMAP_MODES.OFF, x.tileScale.set(.42), x.width = P.x, x.height = P.y, GameModel.getInstance().grassSprite = x, x.tint = GameModel.getInstance().persistentData.backgroundTint || 16777215, u.addChild(x), v.setupLevel(), setTimeout((function() {
               Z(!0)
@@ -5181,12 +5181,13 @@ var Incremancer;
       e != this.healthBar.percentage && (this.healthBar.foreground.clear(), e > 0 && (this.healthBar.foreground.lineStyle(8, 16601682), this.healthBar.foreground.moveTo(0, 0), this.healthBar.foreground.lineTo(e, 0)), this.healthBar.percentage = e)
     }
     drawGraveyard() {
-      this.spikeTexture || (this.spikeTexture = PIXI.Texture.from("spikes.png")), this.sprite && u.removeChild(this.sprite), this.fortSprite && (g.removeChild(this.fortSprite), this.fortSprite = null), this.level = 1;
-      let e = "graveyard1.png",
-        t = "";
-      this.gameModel.constructions.crypt && (this.level = 2, e = "graveyard2.png"), this.gameModel.constructions.fort && (this.level = 3, e = "sprites/megagraveyard.png", t = "fort1.png"), this.gameModel.constructions.fortress && (this.level = 4, e = "sprites/megagraveyard.png", t = "fort2.png"), this.gameModel.constructions.citadel && (this.level = 5, e = "sprites/megagraveyard.png", t = "fort3.png"), this.sprite ? this.sprite.texture = PIXI.Texture.from(e) : this.sprite = new Ne(PIXI.Texture.from(e));
+      this.spikeTexture || (this.spikeTexture = PIXI.Texture.from("spikes.png")), this.sprite && this.sprite.parent && this.sprite.parent.removeChild(this.sprite), this.fortSprite && this.fortSprite.parent && this.fortSprite.parent.removeChild(this.fortSprite), this.fortSprite = null, this.level = 1;
+      this.gameModel.constructions.crypt && (this.level = 2), this.gameModel.constructions.fort && (this.level = 3), this.gameModel.constructions.fortress && (this.level = 4), this.gameModel.constructions.citadel && (this.level = 5);
+      const e = PIXI.Texture.from("sprites/graveyard-hd-stage" + this.level + "-v1.png"),
+        t = [{}, { width: 72, height: 59, anchorY: .5 }, { width: 76, height: 72, anchorY: .72 }, { width: 90, height: 96, anchorY: .94 }, { width: 94, height: 115, anchorY: .96 }, { width: 97, height: 128, anchorY: .98 }][this.level];
+      e.baseTexture.scaleMode = PIXI.SCALE_MODES.LINEAR, this.sprite ? this.sprite.texture = e : this.sprite = new Ne(e);
       const s = this.zmMap.graveYardLocation;
-      this.sprite.width = 32, this.sprite.height = 32, this.sprite.anchor.set(.5, .5), this.sprite.scale.set(2, 2), this.sprite.visible = !1, u.addChild(this.sprite), this.sprite.x = s.x, this.sprite.y = s.y, this.zmMap.graveyardCollision = !1, t && (this.fortSprite ? this.fortSprite.texture = PIXI.Texture.from(t) : this.fortSprite = new PIXI.Sprite(PIXI.Texture.from(t)), this.fortSprite.anchor.set(.5, 1), this.fortSprite.scale.set(2, 2), this.fortSprite.x = s.x, this.fortSprite.zIndex = this.fortSprite.y = s.y + 2, this.fortSprite.visible = !1, g.addChild(this.fortSprite))
+      this.sprite.width = t.width, this.sprite.height = t.height, this.sprite.anchor.set(.5, t.anchorY), this.sprite.visible = !1, this.sprite.x = s.x, this.sprite.y = s.y, this.sprite.zIndex = s.y + 2, g.addChild(this.sprite), this.zmMap.graveyardCollision = !1
     }
     drawFence() {
       if (this.fence || (this.fence = new PIXI.Container, u.addChild(this.fence)), this.fenceRadius = this.gameModel.fenceRadius, !this.fenceTextures) {
@@ -6369,10 +6370,8 @@ var Incremancer;
       Bones.instance = this
     }
     getTexture() {
-      const e = document.createElement("canvas");
-      e.width = 4, e.height = 1;
-      const t = e.getContext("2d");
-      return t.fillStyle = "#dddddd", t.fillRect(0, 0, 4, 1), PIXI.Texture.from(e)
+      const e = PIXI.Texture.from("sprites/dropped-bone-v1.png");
+      return e.baseTexture.scaleMode = PIXI.SCALE_MODES.LINEAR, e
     }
     initialize() {
       this.gameModel = GameModel.getInstance(), this.container || (this.container = new PIXI.Container, p.addChild(this.container), this.texture = this.getTexture());
@@ -6390,7 +6389,9 @@ var Incremancer;
     }
     newPart(e, t, s) {
       let i = null;
-      this.discardedSprites.length > 0 ? i = this.discardedSprites.pop() : (i = new et(this.texture), this.sprites.push(i)), this.container.addChild(i), i.x = e, i.y = t - (8 + 10 * Math.random()), i.fadeTime = Math.random() * this.fadeTime, i.rotation = 5 * Math.random(), i.rotSpeed = 4 * Math.random() - 2, i.floor = t, i.hitFloor = !1, i.collector = !1, i.visible = !0, i.value = s, i.alpha = 1, i.scale.set(1, 1), Math.random() > .5 && i.scale.set(1.5, 1.5);
+      this.discardedSprites.length > 0 ? i = this.discardedSprites.pop() : (i = new et(this.texture), this.sprites.push(i)), this.container.addChild(i), i.x = e, i.y = t - (8 + 10 * Math.random()), i.fadeTime = Math.random() * this.fadeTime, i.rotation = 5 * Math.random(), i.rotSpeed = 4 * Math.random() - 2, i.floor = t, i.hitFloor = !1, i.collector = !1, i.visible = !0, i.value = s, i.alpha = 1, i.anchor.set(.5, .5);
+      const n = (Math.random() > .5 ? 12 : 10) / this.texture.width;
+      i.scale.set(n, n);
       const a = Math.random() * this.spraySpeed;
       i.xSpeed = Math.random() > .5 ? -1 * a : a, i.ySpeed = -1 * this.spraySpeed
     }
@@ -7869,7 +7870,7 @@ var Incremancer;
     }
   })).directive("optionsMenu", (function() {
     return {
-      templateUrl: "./templates/optionsmenu.html?v=" + FORK_VERSION + "-our-changelog"
+      templateUrl: "./templates/optionsmenu.html?v=" + FORK_VERSION + "-our-changelog-v2"
     }
   })).directive("shopMenu", (function() {
     return {
