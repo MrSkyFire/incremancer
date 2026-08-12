@@ -405,7 +405,7 @@ var Incremancer;
     if (T.zombieCursor) {
       T.zombieCursor.position = e.data.getLocalPosition(this.parent);
       const t = e.data.getLocalPosition(x);
-      T.mouseOutOfBounds = t.x < 0 || t.y < 0 || t.x > x.width || t.y > x.height
+      T.mouseOutOfBounds = t.x < 0 || t.y < 0 || t.x > x.width || t.y > x.height, T.setHordeCommandTarget(t.x, t.y)
     }
     if (e.data.originalEvent.touches && e.data.originalEvent.touches.length > 1) ! function(e) {
       const t = Math.abs(e.data.originalEvent.touches[0].clientX - e.data.originalEvent.touches[1].clientX);
@@ -424,9 +424,9 @@ var Incremancer;
   }
 
   function E(e) {
-    if (!this.hasMoved && v.currentState == v.states.playingLevel) {
+    if (!this.hasMoved && !Y.shift && !e.data.originalEvent.shiftKey && v.currentState == v.states.playingLevel) {
       const t = e.data.getLocalPosition(this);
-      T.model.energy >= T.model.zombieCost && T.openShadowPortal(t.x, t.y), Y.shift ? T.spawnAllZombies(t.x, t.y) : T.spawnZombie(t.x, t.y)
+      T.model.energy >= T.model.zombieCost && T.openShadowPortal(t.x, t.y), T.spawnZombie(t.x, t.y)
     }
     this.hasMoved = !1
   }
@@ -561,7 +561,6 @@ var Incremancer;
     if (Y.canType) return !0;
     switch (e.keyCode) {
       case 16:
-      case 17:
         Y.shift = !0;
         break;
       case 87:
@@ -588,7 +587,6 @@ var Incremancer;
     if (Y.canType) return !0;
     switch (e.keyCode) {
       case 16:
-      case 17:
         Y.shift = !1;
         break;
       case 87:
@@ -4085,12 +4083,12 @@ var Incremancer;
    * ================================================================ */
   class Zombies {
     constructor() {
-      if (this.zombies = [], this.discardedZombies = [], this.aliveZombies = [], this.aliveHumans = [], this.zombiePartition = [], this.scaling = 2, this.moveTargetDistance = 15, this.attackDistance = 15, this.attackSpeed = 3, this.targetDistance = 100, this.fadeSpeed = .1, this.refundChance = 0, this.currId = 1, this.scanTime = 3, this.textures = [], this.dogTexture = [], this.deadDogTexture = [], this.maxSpeed = 10, this.zombieCursor = null, this.zombieCursorPortal = null, this.zombieCursorText = null, this.zombieCursorScale = 3, this.portalPhase = 0, this.shadowPortals = [], this.mouseOutOfBounds = !1, this.burnTickTimer = 5, this.bloodpact = 1, this.bloodborn = 0, this.gigamutagen = 0, this.gigamutationTimer = 10, this.smokeTimer = .3, this.fastDistance = i, this.magnitude = t, this.detonate = !1, this.super = !1, this.reactionTime = 0, this.graveyardAttackers = [], this.spaceNeeded = 3, Zombies.instance) return Zombies.instance;
+      if (this.zombies = [], this.discardedZombies = [], this.aliveZombies = [], this.aliveHumans = [], this.zombiePartition = [], this.scaling = 2, this.moveTargetDistance = 15, this.attackDistance = 15, this.attackSpeed = 3, this.targetDistance = 100, this.fadeSpeed = .1, this.refundChance = 0, this.currId = 1, this.scanTime = 3, this.textures = [], this.dogTexture = [], this.deadDogTexture = [], this.maxSpeed = 10, this.zombieCursor = null, this.zombieCursorPortal = null, this.zombieCursorText = null, this.zombieCursorScale = 3, this.portalPhase = 0, this.shadowPortals = [], this.mouseOutOfBounds = !1, this.hordeCommandTarget = null, this.hordeCommandActive = !1, this.burnTickTimer = 5, this.bloodpact = 1, this.bloodborn = 0, this.gigamutagen = 0, this.gigamutationTimer = 10, this.smokeTimer = .3, this.fastDistance = i, this.magnitude = t, this.detonate = !1, this.super = !1, this.reactionTime = 0, this.graveyardAttackers = [], this.spaceNeeded = 3, Zombies.instance) return Zombies.instance;
       Zombies.instance = this
     }
     populate() {
       for (let e = 0; e < this.shadowPortals.length; e++) b.removeChild(this.shadowPortals[e]), this.shadowPortals[e].destroy();
-      this.shadowPortals.length = 0, this.detonate = !1, this.super = !1, this.superMult = 10, this.speedBuff = 1;
+      this.shadowPortals.length = 0, this.hordeCommandTarget = null, this.hordeCommandActive = !1, this.detonate = !1, this.super = !1, this.superMult = 10, this.speedBuff = 1;
       if (this.map = new LevelMap, this.model = GameModel.getInstance(), this.humans = new Humans, this.graveyard = new Graveyard, this.creatureFactory = new ae, this.smoke = new ot, this.blood = new _e, this.bones = new Bones, this.exclamations = new it, this.blasts = new nt, this.bullets = new rt, this.model.zombieCount = 0, 0 == this.textures.length) {
         for (let e = 0; e < 3; e++) {
           const t = [];
@@ -4139,14 +4137,17 @@ var Incremancer;
       );
       const r = s ? .7 : 1;
       a.scaling = a.scaleMod * this.scaling * r, a.scale.set(Math.random() > .5 ? a.scaling : -1 * a.scaling, a.scaling);
-      a.timer.attack = 0, a.xSpeed = 0, a.ySpeed = 0, a.speedMultiplier = 1, a.timer.scan = 0, a.timer.burnTick = this.burnTickTimer, a.timer.smoke = this.smokeTimer, s ? a.play() : (a.stop(), a.shadowAnimator.reset()), a.zombieId = this.currId++, this.zombies.push(a), g.addChild(a), this.smoke.newZombieSpawnCloud(e, t - 2)
+      a.timer.attack = 0, a.xSpeed = 0, a.ySpeed = 0, a.speedMultiplier = 1, a.hordeCommanding = !1, a.timer.scan = 0, a.timer.burnTick = this.burnTickTimer, a.timer.smoke = this.smokeTimer, s ? a.play() : (a.stop(), a.shadowAnimator.reset()), a.zombieId = this.currId++, this.zombies.push(a), g.addChild(a), this.smoke.newZombieSpawnCloud(e, t - 2)
     }
     spawnZombie(e, t) {
       this.model.energy < this.model.zombieCost || (this.model.energy -= this.model.zombieCost, this.createZombie(e, t, !1))
     }
-    spawnAllZombies(e, t) {
-      const s = Math.min(Math.floor(this.model.energy / this.model.zombieCost), 100);
-      for (let i = 0; i < s; i++) this.spawnZombie(e + 4 * (Math.random() - 1), t + 4 * (Math.random() - 1))
+    setHordeCommandTarget(e, t) {
+      this.hordeCommandTarget ? (this.hordeCommandTarget.x = e, this.hordeCommandTarget.y = t) : this.hordeCommandTarget = {
+        x: e,
+        y: t,
+        flags: { dead: !1 }
+      }
     }
     openShadowPortal(e, t) {
       const s = new PIXI.Graphics;
@@ -4195,14 +4196,13 @@ var Incremancer;
       this.maxSpeed = this.model.zombieSpeed, this.detonate && (this.maxSpeed *= 1.5), this.reactionTime = Math.max(.2, this.aliveZombies.length / 2e3);
       const t = [],
         s = [];
-      this.aliveHumans = this.humans.aliveHumans, this.graveyardAttackers = this.humans.graveyardAttackers, this.gigamutagen > 0 && (this.gigamutationTimer -= e);
+      this.aliveHumans = this.humans.aliveHumans, this.graveyardAttackers = this.humans.graveyardAttackers, this.hordeCommandActive = Y.shift && !!this.hordeCommandTarget && !this.mouseOutOfBounds && this.model.currentState == this.model.states.playingLevel, this.gigamutagen > 0 && (this.gigamutationTimer -= e);
       for (let i = 0; i < this.zombies.length; i++) this.zombies[i].visible && (this.updateZombie(this.zombies[i], e), this.zombies[i].flags.dead || (t.push(this.zombies[i]), this.partitionInsert(s, this.zombies[i])));
-      if (this.model.zombieCount = t.length, this.aliveZombies = t, this.zombiePartition = s, this.model.energy >= this.model.zombieCost && this.model.currentState == this.model.states.playingLevel)
-        if (this.zombieCursor.visible = !this.mouseOutOfBounds, Y.shift && !this.mouseOutOfBounds) {
+      if (this.model.zombieCount = t.length, this.aliveZombies = t, this.zombiePartition = s, (this.hordeCommandActive || this.model.energy >= this.model.zombieCost) && this.model.currentState == this.model.states.playingLevel)
+        if (this.zombieCursor.visible = !this.mouseOutOfBounds, this.hordeCommandActive) {
           this.zombieCursorText.visible = !0;
-          const e = Math.min(Math.floor(this.model.energy / this.model.zombieCost), 100);
-          this.zombieCursorText.text != e && (this.zombieCursorText.text = e)
-        } else this.zombieCursorText.visible = !1;
+          this.zombieCursorText.text != "HOLD" && (this.zombieCursorText.text = "HOLD"), this.zombieCursorPortal.tint = 0xff3355
+        } else this.zombieCursorText.visible = !1, this.zombieCursorPortal.tint = 0xffffff;
       else this.zombieCursor.visible = !1
     }
     detonateZombie(e) {
@@ -4215,7 +4215,11 @@ var Incremancer;
         if (!e.visible) return;
         return e.alpha -= this.fadeSpeed * t, void(e.alpha < 0 && (e.visible = !1, g.removeChild(e)))
       }
-      switch (1 == e.mod && this.gigamutationTimer < 0 && (e.mod = 10, e.scaling *= 1.5, e.scale.set(e.scaling, e.scaling), e.maxHealth *= 10, e.health *= 10, this.gigamutationTimer = this.gigamutagen, this.smoke.newZombieSpawnCloud(e.x, e.y - 2)), e.bloodbornTimer -= t, e.timer.attack -= t, e.timer.scan -= t, this.model.runeEffects.healthRegen > 0 && this.updateZombieRegen(e, t), this.detonate && this.detonateZombie(e), e.flags.burning && this.updateBurns(e, t), (!e.target || e.target.flags.dead) && e.timer.scan < 0 && (e.state = be.lookingForTarget), e.state) {
+      1 == e.mod && this.gigamutationTimer < 0 && (e.mod = 10, e.scaling *= 1.5, e.scale.set(e.scaling, e.scaling), e.maxHealth *= 10, e.health *= 10, this.gigamutationTimer = this.gigamutagen, this.smoke.newZombieSpawnCloud(e.x, e.y - 2)), e.bloodbornTimer -= t, e.timer.attack -= t, e.timer.scan -= t, this.model.runeEffects.healthRegen > 0 && this.updateZombieRegen(e, t), this.detonate && this.detonateZombie(e), e.flags.burning && this.updateBurns(e, t);
+      if (e.flags.dead) return void(e.shadowAnimator && !e.flags.dog && e.shadowAnimator.update(t));
+      if (this.hordeCommandActive) return this.updateCommandedZombie(e, t), void(e.shadowAnimator && !e.flags.dog && e.shadowAnimator.update(t));
+      e.hordeCommanding && this.releaseCommandedZombie(e), (!e.target || e.target.flags.dead) && e.timer.scan < 0 && (e.state = be.lookingForTarget);
+      switch (e.state) {
         case be.lookingForTarget:
           this.searchClosestTarget(null !== (s = e.target) && void 0 !== s ? s : e), e.target && !e.target.flags.dead || this.assignRandomTarget(e), e.target && (e.state = be.movingToTarget);
           break;
@@ -4243,6 +4247,14 @@ var Incremancer;
           )
         )
       ), e.shadowAnimator && !e.flags.dog && e.shadowAnimator.update(t)
+    }
+    updateCommandedZombie(e, t) {
+      e.hordeCommanding || (e.hordeCommanding = !0, e.targetVector = null, e.timer.target = 0), e.target = this.hordeCommandTarget, e.state = be.movingToTarget;
+      const s = this.fastDistance(e.position.x, e.position.y, e.target.x, e.target.y);
+      s > .65 * this.moveTargetDistance ? this.updateZombieSpeed(e, t) : (e.xSpeed = 0, e.ySpeed = 0, e.targetVector = null, e.timer.target = 0)
+    }
+    releaseCommandedZombie(e) {
+      e.hordeCommanding = !1, e.target = null, e.targetVector = null, e.state = be.lookingForTarget, e.timer.scan = 0, e.timer.target = 0, e.xSpeed = 0, e.ySpeed = 0
     }
     setSpeedMultiplier(e) {
       e.flags.burning ? e.speedMultiplier = this.model.burningSpeedMod : e.speedMultiplier = Math.max(Math.min(1, e.health / e.maxHealth), .4)
@@ -7857,7 +7869,7 @@ var Incremancer;
     }
   })).directive("optionsMenu", (function() {
     return {
-      templateUrl: "./templates/optionsmenu.html?v=" + FORK_VERSION
+      templateUrl: "./templates/optionsmenu.html?v=" + FORK_VERSION + "-our-changelog"
     }
   })).directive("shopMenu", (function() {
     return {

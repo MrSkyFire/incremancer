@@ -31,7 +31,7 @@
     <script src="js/lz-string.min.js"></script>
     <script src="js/pixi-legacy.min.js"></script>
     <script src="js/angular.min.js"></script>
-    <script src="dist/bundle.js?v=v0.1.0-clean-start-panel"></script>
+    <script src="dist/bundle.js?v=v0.1.0-horde-rally-v2"></script>
     <script src="js/champion-progression.js"></script>
     <link rel="stylesheet" type="text/css" href="zombiemancer.css?v=v1.2.5-necromage-channel">
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon"/>
@@ -117,7 +117,6 @@
     <div class="start-game" ng-if="zm.model.currentState == zm.model.states.startGame">
       <h2>Incremancer</h2><h4>Take control of a horde of zombies to ravage small towns</h4>
       <p class="version" style="opacity:0.6; font-size:0.85em; margin:4px 0 8px;">{{zm.model.forkVersion}} — {{zm.model.forkVersionDate}}</p>
-      <a href="https://discord.gg/TxPyNDh" target="_blank">Join the Discord - https://discord.gg/TxPyNDh</a>
       <h3 ng-if="zm.model.offlineMessage">{{zm.model.offlineMessage}}</h3>
       <button ng-click="zm.startGame();">Start Level {{zm.model.level}}</button>
     </div>

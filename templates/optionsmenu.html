@@ -5,10 +5,8 @@
   </div>
   <div class="upgrades">
       <div class="upgrade">
-          <h4>How to play</h4>
-          <ul>
-              <li ng-repeat="text in zm.howToPlay">{{text}}</li>
-          </ul>
+          <h4>Horde Controls</h4>
+          <p>Hold Shift to move standard zombies to the cursor and keep them there. Release Shift to return the horde to normal combat.</p>
       </div>
       <div class="upgrade">
           <h4>Auto Restart Level</h4>
@@ -91,35 +89,20 @@
           <button ng-click="zm.resetGame();">Reset Game</button>
       </div>
       <div class="upgrade">
-          <h4>Changelog (Fork)</h4>
+          <h4>Changelog</h4>
 
-          <p><strong>v1.1.0</strong> <em>2026-02-16</em></p>
+          <p><strong>v0.1.0</strong> <em>2026-08-12</em></p>
           <ul>
-              <li>Spider Lair: bone spiders, spider speed, parts collection, spiderlings with arc collection</li>
-              <li>Slingshot (formerly Net Launcher): per-net ranked upgrades, rank-gating, skeleton/golem/zombie/prodigy nets</li>
-              <li>Spiders panel: Equipment Strapping (sacrifice 5 → next rarity), Net Distribution</li>
-              <li>Harpy rework: zombie harpies, skeleton/golem delivery, auto-max fix</li>
-              <li>Necromantic Prodigies: 1-in-100 zombies with skeleton talents</li>
-              <li>Skeleton: Hybrid Talent Infusion (combat talents apply to golems), Strider's Mathemagics</li>
-              <li>Strap 'em Tighter upgrade (x225 dmg/hp at 1e30 blood)</li>
-              <li>Boss rush mode offered at level 50 completion</li>
-              <li>Boss fail auto-restart (back 49 levels instead of retrying)</li>
-              <li>Per-tab auto-buy toggles (shop, factory, prestige), Remember Minions toggle</li>
-              <li>Spell system: buffs persist across level transitions, cancelled on ascension</li>
-              <li>Ascension fix: full skeleton state reset (items, gear, xp, xpRate)</li>
-              <li>Chatlog system with notification combining</li>
-              <li>Background color options (Grass/Dark/Darker/Midnight)</li>
-              <li>Upgrade info panel shows calculated stats for all upgrades</li>
-              <li>Save migration system for cross-fork compatibility</li>
-              <li>Removed: Patchwork Tailoring, Slowing Nets, bone shields on prodigies/golems</li>
-              <li>Removed: debug panel (speed controls, forced prestige/level-done), auto prestige, FPS toggle</li>
-          </ul>
-
-          <p><strong>v1.0.0</strong> <em>2026-02-10</em></p>
-          <ul>
-              <li>Fork baseline: pretty-print, class renaming, section headers</li>
-              <li>Merged FrAmed46 balance changes, ring/armband equipment slots</li>
-              <li>Save migration system for cross-fork compatibility</li>
+              <li>Replaced the permanent Skeleton Champion visual path with the dedicated NecroMage</li>
+              <li>Added eight-direction NecroMage idle, walk, attack, cast, hurt, and death animation states</li>
+              <li>Added NecroMage kill progression, levels, spell unlocks, talents, gear, and killing-blow tracking</li>
+              <li>Added the optional NecroMage channeling stance for zombie energy generation</li>
+              <li>Replaced standard zombies with outlined shadow humanoids and eight-direction animation</li>
+              <li>Added eight-direction idle and walk animation for civilians, medics, and armed humans</li>
+              <li>Added a shadow-portal spawn cursor with a temporary summoning animation</li>
+              <li>Rebuilt the battlefield as a gritty sandstone city with modernized buildings and foliage</li>
+              <li>Added scaled red and blue faction highlights for zombies and humans</li>
+              <li>Reworked Shift into a hold-to-command horde rally at the cursor position</li>
           </ul>
       </div>
   </div>
