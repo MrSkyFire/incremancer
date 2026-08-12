@@ -241,7 +241,7 @@ var Incremancer;
     const a = e.clientY - s.y;
     i > s.width / 2 && (i -= t.getElementsByClassName("tooltip")[0].getBoundingClientRect().width), t.getElementsByClassName("tooltip")[0].style.top = a + 20 + "px", t.getElementsByClassName("tooltip")[0].style.left = i + 20 + "px"
   }
-  let c, u, p, g, m, b, f, y, x;
+  let c, u, p, g, m, b, f, y, x, q;
   (e => {
     "undefined" != typeof Symbol && Symbol.toStringTag && Object.defineProperty(e, Symbol.toStringTag, {
       value: "Module"
@@ -376,7 +376,7 @@ var Incremancer;
       x: e,
       y: t,
       defaultScale: Math.max(e, t) / 1e3
-    }, Y.scrollSpeed = Math.max(e, t) / 4
+    }, Y.scrollSpeed = Math.max(e, t) / 4, q && (q.width = e, q.height = t)
   }
   new Map, window.onload = function() {
     v = GameModel.getInstance(), S = new Qe, M = new Graveyard, k = new Ue, w = new SkeletonChampion, T = new Zombies, C = new Humans, v.loadData(), v.onReady(), O(),
@@ -385,7 +385,7 @@ var Incremancer;
         const e = new PIXI.Application({
           width: D.x,
           height: D.y,
-          backgroundColor: 1066256,
+          backgroundColor: 0x040508,
           resolution: v.persistentData.resolution || 1,
           antialias: !1,
           resizeTo: window
@@ -398,8 +398,9 @@ var Incremancer;
             }), y = new PIXI.Sprite(f), y.visible = !1, y.alpha = 0, m.addChild(y), c.addChild(u), c.addChild(p), c.addChild(g), c.addChild(b), e.stage.addChild(c), e.stage.addChild(m), c.interactive = !0, c.interactiveChildren = !1, c.on("pointerdown", z), c.on("pointerup", I), c.on("pointerupoutside", I), c.on("pointermove", H), c.on("click", E), c.on("tap", E), document.getElementsByTagName("canvas")[0].onwheel = L, document.getElementsByTagName("canvas")[0].oncontextmenu = function(e) {
               e.preventDefault()
             }
-          }(e), e.loader.add("sprites/ground.json").add("sprites/megagraveyard.png").add("sprites/graveyard.json").add("sprites/buildings.json").add("sprites/humans.json").add("sprites/cop.json").add("sprites/dogs.json").add("sprites/army.json").add("sprites/doctor.json").add("sprites/zombie.json").add("sprites/golem.json").add("sprites/bonecollector.json").add("sprites/harpy.json").add("sprites/objects2.json").add("sprites/fenceposts.json").add("sprites/trees2.json").add("sprites/fortress.json").add("sprites/tank.json").add("sprites/skeleton.json").add("sprites/necromage-hd.json").add("sprites/shadow-humanoid.json?v=v1.1.4-shadow-cursor").load((function() {
-            v.app = e, N(), x = new PIXI.TilingSprite(PIXI.Texture.from("grass.png")), x.texture.baseTexture.mipmap = PIXI.MIPMAP_MODES.OFF, x.width = P.x, x.height = P.y, GameModel.getInstance().grassSprite = x, x.tint = GameModel.getInstance().persistentData.backgroundTint || 16777215, u.addChild(x), v.setupLevel(), setTimeout((function() {
+          }(e), e.loader.add("outerShadow", "sprites/environment/outer-shadow.jpg").add("cobblestoneGround", "sprites/environment/cobblestone-ground.jpg").add("modernBuildingFloor", "sprites/environment/modern-building-floor.jpg").add("modernBuildingWall", "sprites/environment/modern-building-wall.jpg").add("sprites/megagraveyard.png").add("sprites/graveyard.json").add("sprites/humans.json").add("sprites/cop.json").add("sprites/dogs.json").add("sprites/army.json").add("sprites/doctor.json").add("sprites/zombie.json").add("sprites/golem.json").add("sprites/bonecollector.json").add("sprites/harpy.json").add("sprites/objects2.json").add("sprites/fenceposts.json").add("sprites/trees2.json").add("sprites/fortress.json").add("sprites/tank.json").add("sprites/skeleton.json").add("sprites/necromage-hd.json").add("sprites/shadow-humanoid.json?v=v1.1.4-shadow-cursor").load((function() {
+            const t = e.loader.resources.outerShadow.texture, s = e.loader.resources.cobblestoneGround.texture;
+            t.baseTexture.scaleMode = PIXI.SCALE_MODES.LINEAR, t.baseTexture.wrapMode = PIXI.WRAP_MODES.MIRRORED_REPEAT, s.baseTexture.scaleMode = PIXI.SCALE_MODES.LINEAR, s.baseTexture.wrapMode = PIXI.WRAP_MODES.REPEAT, v.app = e, N(), q = new PIXI.TilingSprite(t, D.x, D.y), q.tileScale.set(.55), e.stage.addChildAt(q, 0), x = new PIXI.TilingSprite(s), x.texture.baseTexture.mipmap = PIXI.MIPMAP_MODES.OFF, x.tileScale.set(.42), x.width = P.x, x.height = P.y, GameModel.getInstance().grassSprite = x, x.tint = GameModel.getInstance().persistentData.backgroundTint || 16777215, u.addChild(x), v.setupLevel(), setTimeout((function() {
               Z(!0)
             })), e.ticker.add((t => {
               U(e.ticker.deltaMS / 1e3, e), v.frameRate = e.ticker.FPS
@@ -647,7 +648,7 @@ var Incremancer;
    * ================================================================ */
   class LevelMap {
     constructor() {
-      if (this.gameModel = GameModel.getInstance(), this.humans = new Humans, this.discardedWalls = [], this.discardedContainers = [], this.discardedFloorSprites = [], this.buildings = [], this.buildingsByPopularity = [], this.buildingMap = [], this.roadSprite = null, this.roadTexture = null, this.entranceWidth = 16, this.entranceDepth = 16, this.cornerDistance = 16, this.minBuildings = 3, this.wallWidth = 4, this.graveyardCollision = null, this.graveYardLocation = {
+      if (this.gameModel = GameModel.getInstance(), this.humans = new Humans, this.discardedWalls = [], this.discardedContainers = [], this.discardedFloorSprites = [], this.buildings = [], this.buildingsByPopularity = [], this.buildingMap = [], this.roadSprite = null, this.roadTexture = null, this.buildingFloorTexture = null, this.buildingWallTexture = null, this.entranceWidth = 16, this.entranceDepth = 16, this.cornerDistance = 16, this.minBuildings = 3, this.wallWidth = 4, this.graveyardCollision = null, this.graveYardLocation = {
           x: 0,
           y: 0
         }, this.graveYardPosition = null, this.wallCollisionBuffer = 3, this.fastDistance = i, this.pathFindStepSize = 5, this.dx = 0, this.dy = 0, this.stepsToTake = 10, this.hasHit = !1, this.vector = null, this.corner = null, this.hitbuilding = !1, this.insideBuilding = !1, this.treeSprites = [], this.treeTextures = [], this.armyTextures = [], LevelMap.instance) return LevelMap.instance;
@@ -666,11 +667,20 @@ var Incremancer;
       return !(this.gameModel.level % 5 == 0 && !this.gameModel.isBossStage(this.gameModel.level) && e.y < this.roadSprite.y + this.roadSprite.height && e.y + e.height > this.roadSprite.y)
     }
     getWall(e) {
+      let t;
       if (this.discardedWalls.length > 0) {
-        const t = this.discardedWalls.pop();
-        return t.texture = e, t
-      }
-      return new V(e)
+        t = this.discardedWalls.pop(), t.texture = e
+      } else t = new V(e);
+      return t.tileScale.set(.08), t.tint = 0xb7c2ca, t.alpha = .96, t
+    }
+    addModernBuildingDetails(e) {
+      const t = new PIXI.Graphics, s = e.id % 3 == 0 ? 0xd39a55 : 0x55c9bd,
+        i = [[-5, -5], [e.width + 1, -5], [-5, e.height + 1], [e.width + 1, e.height + 1]];
+      for (let e = 0; e < i.length; e++) t.beginFill(0x090c11, .98), t.drawRect(i[e][0], i[e][1], 4, 4), t.endFill(), t.beginFill(s, .8), t.drawRect(i[e][0] + 1.25, i[e][1] + 1.25, 1.5, 1.5), t.endFill();
+      const a = e.width / 2, r = e.height / 2;
+      t.beginFill(0x05070a, .85);
+      e.entrance.north ? (t.drawRect(a - this.entranceWidth, -5, 3, 6), t.drawRect(a + this.entranceWidth - 3, -5, 3, 6)) : e.entrance.south ? (t.drawRect(a - this.entranceWidth, e.height - 1, 3, 6), t.drawRect(a + this.entranceWidth - 3, e.height - 1, 3, 6)) : e.entrance.west ? (t.drawRect(-5, r - this.entranceWidth, 6, 3), t.drawRect(-5, r + this.entranceWidth - 3, 6, 3)) : (t.drawRect(e.width - 1, r - this.entranceWidth, 6, 3), t.drawRect(e.width - 1, r + this.entranceWidth - 3, 6, 3)), t.endFill(), t.beginFill(s, .92);
+      e.entrance.north ? (t.drawRect(a - this.entranceWidth + .7, -4, 1.6, 2), t.drawRect(a + this.entranceWidth - 2.3, -4, 1.6, 2)) : e.entrance.south ? (t.drawRect(a - this.entranceWidth + .7, e.height + 1, 1.6, 2), t.drawRect(a + this.entranceWidth - 2.3, e.height + 1, 1.6, 2)) : e.entrance.west ? (t.drawRect(-4, r - this.entranceWidth + .7, 2, 1.6), t.drawRect(-4, r + this.entranceWidth - 2.3, 2, 1.6)) : (t.drawRect(e.width + 1, r - this.entranceWidth + .7, 2, 1.6), t.drawRect(e.width + 1, r + this.entranceWidth - 2.3, 2, 1.6)), t.endFill(), e.structureDetails = t, e.container.addChild(t)
     }
     makeHorizontalWall(e, t, s, i, a, r) {
       if (s) {
@@ -701,8 +711,7 @@ var Incremancer;
       return this.discardedFloorSprites.length > 0 ? this.discardedFloorSprites.pop() : new PIXI.TilingSprite(PIXI.Texture.WHITE)
     }
     addBuilding(e) {
-      var t, s;
-      e.container = this.getContainer(), e.container.cacheAsBitmap = !1, e.floorSprite = this.getFloorSprite(), e.floorSprite.tint = (t = 10 + Math.round(50 * Math.random()), s = 10 + Math.round(50 * Math.random()), 10 + Math.round(50 * Math.random()) | s << 8 | t << 16), e.floorSprite.alpha = .2, e.container.x = e.x, e.container.y = e.y, e.floorSprite.width = e.width, e.floorSprite.height = e.height, e.container.addChild(e.floorSprite);
+      e.container = this.getContainer(), e.container.cacheAsBitmap = !1, e.floorSprite = this.getFloorSprite(), e.floorSprite.texture = this.buildingFloorTexture, e.floorSprite.tileScale.set(.13), e.floorSprite.tint = e.id % 2 ? 0xaeb8c2 : 0x9d98a2, e.floorSprite.alpha = .82, e.container.x = e.x, e.container.y = e.y, e.floorSprite.width = e.width, e.floorSprite.height = e.height, e.container.addChild(e.floorSprite);
       const r = [{
         x: e.x + e.width / 2,
         y: e.y,
@@ -771,10 +780,10 @@ var Incremancer;
         t < h && (h = t, n = r[e])
       }
       e.entrance = n, this.gameModel.level % 5 == 0 && (e.y < P.y / 2 ? e.entrance = r.filter((e => e.south))[0] : e.entrance = r.filter((e => e.north))[0]), e.walls = [];
-      const l = a(this.buildingTextures, Math.random());
+      const l = this.buildingWallTexture;
       this.makeHorizontalWall(e.walls, l, e.entrance.north, -4, -4, e.width + 8), this.makeHorizontalWall(e.walls, l, e.entrance.south, -4, e.height, e.width + 8), this.makeVerticalWall(e.walls, l, e.entrance.west, -4, -4, e.height + 8), this.makeVerticalWall(e.walls, l, e.entrance.east, e.width, -4, e.height + 8);
       for (let t = 0; t < e.walls.length; t++) e.container.addChild(e.walls[t]);
-      e.container.cacheAsBitmap = !0, u.addChild(e.container);
+      this.addModernBuildingDetails(e), e.container.cacheAsBitmap = !0, u.addChild(e.container);
       for (let t = 0; t < e.walls.length; t++) e.walls[t].collisionX = e.x + e.walls[t].x, e.walls[t].collisionY = e.y + e.walls[t].y, e.walls[t].collisionWidth = e.walls[t].width, e.walls[t].collisionHeight = e.walls[t].height
     }
     addCorners(e) {
@@ -810,15 +819,14 @@ var Incremancer;
     }
     populatePois() {
       if (this.setGraveyardPosition(), !this.buildingTextures) {
-        this.buildingTextures = [];
-        for (let e = 0; e < 2; e++) this.buildingTextures.push(PIXI.Texture.from("floor" + (e + 1) + ".png"));
-        for (let e = 0; e < 2; e++) this.buildingTextures.push(PIXI.Texture.from("wall" + (e + 1) + ".png"));
-        this.roadSprite = new PIXI.TilingSprite(PIXI.Texture.from("road.png")), this.roadSprite.texture.baseTexture.mipmap = PIXI.MIPMAP_MODES.OFF, this.roadSprite.width = P.x, this.roadSprite.tileScale.set(3, 3), this.roadSprite.height = 96, u.addChild(this.roadSprite), this.roadSprite.visible = !1, this.roadSprite.anchor.set(0, 0)
+        this.buildingFloorTexture = this.gameModel.app.loader.resources.modernBuildingFloor.texture, this.buildingWallTexture = this.gameModel.app.loader.resources.modernBuildingWall.texture, this.buildingFloorTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.LINEAR, this.buildingFloorTexture.baseTexture.wrapMode = PIXI.WRAP_MODES.MIRRORED_REPEAT, this.buildingWallTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.LINEAR, this.buildingWallTexture.baseTexture.wrapMode = PIXI.WRAP_MODES.MIRRORED_REPEAT, this.buildingTextures = [this.buildingWallTexture];
+        const e = this.gameModel.app.loader.resources.cobblestoneGround.texture;
+        this.roadSprite = new PIXI.TilingSprite(e), this.roadSprite.texture.baseTexture.mipmap = PIXI.MIPMAP_MODES.OFF, this.roadSprite.width = P.x, this.roadSprite.tileScale.set(.38), this.roadSprite.tint = 0x8b9098, this.roadSprite.alpha = .92, this.roadSprite.height = 96, u.addChild(this.roadSprite), this.roadSprite.visible = !1, this.roadSprite.anchor.set(0, 0)
       }
       if (this.buildings.length > 0)
         for (let e = 0; e < this.buildings.length; e++) u.removeChild(this.buildings[e].container), this.buildings[e].walls.forEach((t => {
           this.discardedWalls.push(t), this.buildings[e].container.removeChild(t)
-        })), this.buildings[e].container.removeChild(this.buildings[e].floorSprite), this.discardedFloorSprites.push(this.buildings[e].floorSprite), this.discardedContainers.push(this.buildings[e].container);
+        })), this.buildings[e].structureDetails && (this.buildings[e].container.removeChild(this.buildings[e].structureDetails), this.buildings[e].structureDetails.destroy()), this.buildings[e].container.removeChild(this.buildings[e].floorSprite), this.discardedFloorSprites.push(this.buildings[e].floorSprite), this.discardedContainers.push(this.buildings[e].container);
       let e = 1;
       this.buildingsByPopularity = [], this.buildings = [];
       let t = this.minBuildings,
@@ -7712,52 +7720,4 @@ var Incremancer;
         })))
       }
     }
-  }]).directive('shiftDeleteItem', ['$rootScope', function(e) {
-    return {
-      restrict: "A",
-      link: function(t, s, i, a) {
-        s.bind('mouseenter', (function() {
-          Y.shift && s.addClass('shift-trash');
-        })), s.bind('mouseleave', (function() {
-          s.removeClass('shift-trash');
-        }));
-      }
-    }
-  }]).directive("droppableTarget", ["$rootScope", function(e) {
-    return {
-      restrict: "A",
-      link: function(t, s, i, a) {
-        const r = t.item.s;
-        s.bind("dragover", (function(e) {
-          return e.preventDefault && e.preventDefault(), e.dataTransfer.dropEffect = "move", !1
-        })), s.bind("dragenter", (function(e) {
-          e.target && e.target.classList && e.target.classList.contains("icon") && angular.element(e.target.parentElement).addClass("over")
-        })), s.bind("dragleave", (function(e) {
-          e.target && e.target.classList && e.target.classList.contains("icon") && angular.element(e.target.parentElement).removeClass("over")
-        })), s.bind("drop", (function(e) {
-          e.preventDefault && e.preventDefault(), e.stopPropagation && e.stopPropagation(), e.target.classList.contains("icon") && angular.element(e.target.parentElement).removeClass("over");
-          const s = e.dataTransfer.getData("text"),
-            i = t.zm.skeletonMenu.itemById(s);
-          if (i) {
-            const e = t.zm.skeletonMenu.itemType(i);
-            document.getElementsByClassName("equipped")[0].classList.remove(e)
-          }
-          t.zm.skeletonMenu.itemDropped(s, r)
-        })), e.$on("item-drag-start", (function(e, s) {
-          const i = t.zm.skeletonMenu.itemById(s);
-          if (i) {
-            const e = t.zm.skeletonMenu.itemType(i);
-            document.getElementsByClassName("equipped")[0].classList.add(e)
-          }
-        })), e.$on("item-drag-end", (function(e, s) {
-          const i = t.zm.skeletonMenu.itemById(s);
-          if (i) {
-            const e = t.zm.skeletonMenu.itemType(i);
-            document.getElementsByClassName("equipped")[0].classList.remove(e)
-          }
-        }))
-      }
-    }
-  }]), Incremancer = e
-})();
-//# sourceMappingURL=bundle.js.map
+  }]).directive('shiftDeleteItem', ['$rootScope', funct
