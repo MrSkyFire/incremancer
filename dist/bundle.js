@@ -4554,7 +4554,7 @@ var Incremancer;
     }
     spawnCreature(legacyVisual = !1) {
       let e, legacyIndex = legacyVisual ? this.discardedSprites.findIndex((e => !e.necroAnimator)) : -1;
-      legacyIndex >= 0 ? (e = this.discardedSprites.splice(legacyIndex, 1)[0], e.textures = this.textures.down) : (e = new Le(legacyVisual ? this.textures.down : [PIXI.Texture.EMPTY]), e.addChild(e.boneshieldContainer), e.boneshieldContainer.position.set(0, -16), e.boneshieldContainer.radius = 16), e.tint = 15658734, e.netSkeleton = legacyVisual, e.channeling = !1, e.immuneToBurns = !1, e.bulletReflect = 0, e.zombie = !0, e.textureSet = this.textures, e.deadTexture = legacyVisual ? this.textures.dead : [PIXI.Texture.EMPTY], e.currentDirection = this.directions.down, e.flags = new K, e.burnDamage = 0, e.lastKnownBuilding = !1, e.alpha = 1, e.animationSpeed = .15, e.anchor.set(8.5 / 16, 1), e.position.set(this.graveyard.sprite.x, this.graveyard.sprite.y + (this.graveyard.level > 2 ? 8 : 0)), e.target = null, e.zIndex = e.position.y, e.visible = !0, e.maxHealth = e.health = 10 * this.model.zombieHealth, e.attackDamage = 10 * this.model.zombieDamage, e.regenTimer = 5, e.state = be.lookingForTarget, e.scaling = this.scaling, e.scale.set(e.scaling, e.scaling), e.timer.ability = 4 * Math.random(), e.timer.attack = 0, e.timer.scan = 0, e.timer.burnTick = this.burnTickTimer, e.timer.smoke = this.smokeTimer, e.xSpeed = 0, e.ySpeed = 0, e.speedMultiplier = 1, e.maxSpeed = this.moveSpeed, legacyVisual ? e.play() : (e.stop(), e.necroAnimator = new NecroMageAnimator(e)), e.zombieId = this.currId++, this.skeletons.push(e), g.addChild(e), this.smoke.newZombieSpawnCloud(e.x, e.y - 2);
+      legacyIndex >= 0 ? (e = this.discardedSprites.splice(legacyIndex, 1)[0], e.textures = this.textures.down) : (e = new Le(legacyVisual ? this.textures.down : [PIXI.Texture.EMPTY]), e.addChild(e.boneshieldContainer), e.boneshieldContainer.position.set(0, -16), e.boneshieldContainer.radius = 16), e.tint = 15658734, e.netSkeleton = legacyVisual, e.channeling = !1, e.hordeCommanding = !1, e.immuneToBurns = !1, e.bulletReflect = 0, e.zombie = !0, e.textureSet = this.textures, e.deadTexture = legacyVisual ? this.textures.dead : [PIXI.Texture.EMPTY], e.currentDirection = this.directions.down, e.flags = new K, e.burnDamage = 0, e.lastKnownBuilding = !1, e.alpha = 1, e.animationSpeed = .15, e.anchor.set(8.5 / 16, 1), e.position.set(this.graveyard.sprite.x, this.graveyard.sprite.y + (this.graveyard.level > 2 ? 8 : 0)), e.target = null, e.zIndex = e.position.y, e.visible = !0, e.maxHealth = e.health = 10 * this.model.zombieHealth, e.attackDamage = 10 * this.model.zombieDamage, e.regenTimer = 5, e.state = be.lookingForTarget, e.scaling = this.scaling, e.scale.set(e.scaling, e.scaling), e.timer.ability = 4 * Math.random(), e.timer.attack = 0, e.timer.scan = 0, e.timer.burnTick = this.burnTickTimer, e.timer.smoke = this.smokeTimer, e.xSpeed = 0, e.ySpeed = 0, e.speedMultiplier = 1, e.maxSpeed = this.moveSpeed, legacyVisual ? e.play() : (e.stop(), e.necroAnimator = new NecroMageAnimator(e)), e.zombieId = this.currId++, this.skeletons.push(e), g.addChild(e), this.smoke.newZombieSpawnCloud(e.x, e.y - 2);
       return e
     }
     spawnNetSkeleton(costScale, x, y) {
@@ -4579,7 +4579,7 @@ var Incremancer;
       for (let t = 0; t < this.skeletons.length; t++) {
         const e = this.skeletons[t];
         if (e.netSkeleton || e.flags.dead) continue;
-        e.channeling = !1, e.target = null, e.targetVector = null, e.state = be.lookingForTarget, e.timer.scan = 0, e.timer.target = 0, e.xSpeed = 0, e.ySpeed = 0
+        e.channeling = !1, e.hordeCommanding = !1, e.target = null, e.targetVector = null, e.state = be.lookingForTarget, e.timer.scan = 0, e.timer.target = 0, e.xSpeed = 0, e.ySpeed = 0
       }
       this.model.saveData()
     }
@@ -4598,8 +4598,10 @@ var Incremancer;
         if (!e.visible) return;
         return e.alpha -= this.fadeSpeed * t, void(e.alpha < 0 && (e.visible = !1, g.removeChild(e)))
       }
-      if (!e.netSkeleton && this.persistent.channelEnergy) return void this.updateChannelingCreature(e, t);
+      if (!e.netSkeleton && this.persistent.channelEnergy) return e.hordeCommanding && this.releaseCommandedCreature(e), void this.updateChannelingCreature(e, t);
       e.channeling = !1;
+      if (this.zombies.hordeCommandActive) return this.updateCommandedCreature(e, t), void(e.necroAnimator && e.necroAnimator.update(t));
+      e.hordeCommanding && this.releaseCommandedCreature(e);
       switch (this.boneshield > 0 && e.boneshield < this.boneshield && (e.boneshieldTimer -= t, e.boneshieldTimer < 0 && (e.boneshieldTimer = 10 / this.boneshield, e.boneshield++)), this.boneshield ? (e.boneshieldContainer.visible = !0, e.boneshieldContainer.update(e.boneshield), e.boneshieldContainer.rotation += t) : e.boneshieldContainer.visible = !1, this.darkorb > 0 && (this.darkorbTimer -= t, this.darkorbTimer < 0 && e.target && !e.target.flags.dead && (this.darkorbTimer = this.darkorb, this.bullets.newBullet(e, e.target, this.calculateDamage(e), !1, !1, !1, !0))), e.timer.attack -= t, e.timer.scan -= t, e.timer.ability -= t, this.model.runeEffects.healthRegen > 0 && this.updateZombieRegen(e, t), e.flags.burning && !e.immuneToBurns && this.updateBurns(e, t), e.timer.ability < 0 && (e.timer.ability = 4), e.target && !e.target.flags.dead || (e.state = be.lookingForTarget, e.timer.target = 0, e.timer.scan = 0), e.state) {
         case be.lookingForTarget:
           this.searchClosestTarget(e), e.target && (e.state = be.movingToTarget);
@@ -4624,6 +4626,17 @@ var Incremancer;
         }
       }
       e.necroAnimator && e.necroAnimator.update(t)
+    }
+    updateCommandedCreature(e, t) {
+      this.boneshield > 0 && e.boneshield < this.boneshield && (e.boneshieldTimer -= t, e.boneshieldTimer < 0 && (e.boneshieldTimer = 10 / this.boneshield, e.boneshield++)), this.boneshield ? (e.boneshieldContainer.visible = !0, e.boneshieldContainer.update(e.boneshield), e.boneshieldContainer.rotation += t) : e.boneshieldContainer.visible = !1;
+      e.timer.attack -= t, e.timer.scan -= t, e.timer.ability -= t, this.model.runeEffects.healthRegen > 0 && this.updateZombieRegen(e, t), e.flags.burning && !e.immuneToBurns && this.updateBurns(e, t), e.timer.ability < 0 && (e.timer.ability = 4);
+      if (e.flags.dead) return;
+      e.hordeCommanding || (e.hordeCommanding = !0, e.targetVector = null, e.timer.target = 0), e.target = this.zombies.hordeCommandTarget, e.state = be.movingToTarget;
+      const s = this.fastDistance(e.position.x, e.position.y, e.target.x, e.target.y);
+      s > .65 * this.moveTargetDistance ? (this.updateCreatureSpeed(e, t), e.necroAnimator || e.play()) : (e.xSpeed = 0, e.ySpeed = 0, e.targetVector = null, e.timer.target = 0, e.necroAnimator || e.stop())
+    }
+    releaseCommandedCreature(e) {
+      e.hordeCommanding = !1, e.target = null, e.targetVector = null, e.state = be.lookingForTarget, e.timer.scan = 0, e.timer.target = 0, e.xSpeed = 0, e.ySpeed = 0, e.necroAnimator || (e.stop(), e.currentDirection = 0)
     }
     updateChannelingCreature(e, t) {
       this.boneshield > 0 && e.boneshield < this.boneshield && (e.boneshieldTimer -= t, e.boneshieldTimer < 0 && (e.boneshieldTimer = 10 / this.boneshield, e.boneshield++));
@@ -7870,7 +7883,7 @@ var Incremancer;
     }
   })).directive("optionsMenu", (function() {
     return {
-      templateUrl: "./templates/optionsmenu.html?v=" + FORK_VERSION + "-our-changelog-v2"
+      templateUrl: "./templates/optionsmenu.html?v=" + FORK_VERSION + "-our-changelog-v3"
     }
   })).directive("shopMenu", (function() {
     return {
