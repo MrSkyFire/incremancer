@@ -427,7 +427,8 @@ var Incremancer;
   function E(e) {
     if (!this.hasMoved && !Y.shift && !e.data.originalEvent.shiftKey && v.currentState == v.states.playingLevel) {
       const t = e.data.getLocalPosition(this);
-      T.model.energy >= T.model.zombieCost && T.openShadowPortal(t.x, t.y), T.spawnZombie(t.x, t.y)
+      const s = Y.ctrl || e.data.originalEvent.ctrlKey;
+      T.model.energy >= T.model.zombieCost && T.openShadowPortal(t.x, t.y), s ? T.spawnAllZombies(t.x, t.y) : T.spawnZombie(t.x, t.y)
     }
     this.hasMoved = !1
   }
@@ -554,15 +555,19 @@ var Incremancer;
     s: !1,
     d: !1,
     shift: !1,
+    ctrl: !1,
     canType: !1
   };
   window.onblur = function() {
-    Y.w = Y.a = Y.s = Y.d = !1, Y.shift = !1
+    Y.w = Y.a = Y.s = Y.d = !1, Y.shift = Y.ctrl = !1
   }, window.onkeydown = function(e) {
     if (Y.canType) return !0;
     switch (e.keyCode) {
       case 16:
         Y.shift = !0;
+        break;
+      case 17:
+        Y.ctrl = !0;
         break;
       case 87:
       case 38:
@@ -589,6 +594,9 @@ var Incremancer;
     switch (e.keyCode) {
       case 16:
         Y.shift = !1;
+        break;
+      case 17:
+        Y.ctrl = !1;
         break;
       case 87:
       case 38:
@@ -4143,6 +4151,10 @@ var Incremancer;
     spawnZombie(e, t) {
       this.model.energy < this.model.zombieCost || (this.model.energy -= this.model.zombieCost, this.createZombie(e, t, !1))
     }
+    spawnAllZombies(e, t) {
+      const s = Math.min(Math.floor(this.model.energy / this.model.zombieCost), 100);
+      for (let i = 0; i < s; i++) this.spawnZombie(e + 4 * (Math.random() - 1), t + 4 * (Math.random() - 1))
+    }
     setHordeCommandTarget(e, t) {
       this.hordeCommandTarget ? (this.hordeCommandTarget.x = e, this.hordeCommandTarget.y = t) : this.hordeCommandTarget = {
         x: e,
@@ -4203,6 +4215,10 @@ var Incremancer;
         if (this.zombieCursor.visible = !this.mouseOutOfBounds, this.hordeCommandActive) {
           this.zombieCursorText.visible = !0;
           this.zombieCursorText.text != "HOLD" && (this.zombieCursorText.text = "HOLD"), this.zombieCursorPortal.tint = 0xff3355
+        } else if (Y.ctrl && !this.mouseOutOfBounds) {
+          this.zombieCursorText.visible = !0;
+          const e = Math.min(Math.floor(this.model.energy / this.model.zombieCost), 100);
+          this.zombieCursorText.text != e && (this.zombieCursorText.text = e), this.zombieCursorPortal.tint = 0xffffff
         } else this.zombieCursorText.visible = !1, this.zombieCursorPortal.tint = 0xffffff;
       else this.zombieCursor.visible = !1
     }
