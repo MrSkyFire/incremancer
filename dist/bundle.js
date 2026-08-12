@@ -9,7 +9,7 @@ var Incremancer;
   class NecroMageAnimator {
     static directions = ["E", "SE", "S", "SW", "W", "NW", "N", "NE"];
     static vectors = { E: [1, 0], SE: [.7, .7], S: [0, 1], SW: [-.7, .7], W: [-1, 0], NW: [-.7, -.7], N: [0, -1], NE: [.7, -.7] };
-    static displayScale = .165;
+    static displayScale = .09;
     static texture(direction, state) {
       const texture = PIXI.Texture.from("necromage_" + state + "_" + direction + ".png");
       texture.baseTexture.scaleMode = PIXI.SCALE_MODES.LINEAR;
@@ -86,6 +86,93 @@ var Incremancer;
       } else if (action === "hurt") {
         this.sprite.x = 1.2 * Math.sin(this.phase * 32);
         this.sprite.rotation = .025 * Math.sin(this.phase * 32)
+      }
+    }
+  }
+
+  class ShadowHumanoidAnimator {
+    static directions = ["E", "SE", "S", "SW", "W", "NW", "N", "NE"];
+    static vectors = { E: [1, 0], SE: [.7, .7], S: [0, 1], SW: [-.7, .7], W: [-1, 0], NW: [-.7, -.7], N: [0, -1], NE: [.7, -.7] };
+    static displayScale = .027;
+    static texture(direction, state) {
+      const texture = PIXI.Texture.from("shadow_" + state + "_" + direction + ".png");
+      texture.baseTexture.scaleMode = PIXI.SCALE_MODES.LINEAR;
+      return texture
+    }
+    constructor(host) {
+      this.host = host;
+      this.facing = "S";
+      this.state = "idle";
+      this.key = "";
+      this.phase = 2 * Math.PI * Math.random();
+      this.hurtTime = 0;
+      this.attackTime = 0;
+      this.previousHealth = host.health || 0;
+      this.sprite = new PIXI.Sprite(ShadowHumanoidAnimator.texture("S", "idle"));
+      this.sprite.anchor.set(.5, 360 / 384);
+      this.sprite.scale.set(ShadowHumanoidAnimator.displayScale);
+      this.sprite.roundPixels = !1;
+      host.addChildAt(this.sprite, 0)
+    }
+    reset() {
+      this.key = "";
+      this.state = "idle";
+      this.hurtTime = 0;
+      this.attackTime = 0;
+      this.previousHealth = this.host.health;
+      this.sprite.visible = !0;
+      this.play("idle")
+    }
+    direction(dx, dy) {
+      if (Math.abs(dx) + Math.abs(dy) < .2) return this.facing;
+      let index = Math.round(Math.atan2(dy, dx) / (Math.PI / 4));
+      return index < 0 && (index += 8), ShadowHumanoidAnimator.directions[index % 8]
+    }
+    play(state) {
+      const key = this.facing + ":" + state;
+      this.key !== key && (
+        this.key = key,
+        this.state = state,
+        this.sprite.texture = ShadowHumanoidAnimator.texture(this.facing, state)
+      )
+    }
+    markAttack() { this.attackTime = .42 }
+    update(dt) {
+      const host = this.host;
+      host.health < this.previousHealth && !host.flags.dead && (this.hurtTime = .28);
+      this.previousHealth = host.health;
+      this.hurtTime = Math.max(0, this.hurtTime - dt);
+      this.attackTime = Math.max(0, this.attackTime - dt);
+      const action = host.flags.dead ? "death" :
+        this.hurtTime > 0 ? "hurt" :
+        this.attackTime > 0 ? "attack" :
+        Math.abs(host.xSpeed) > .5 || Math.abs(host.ySpeed) > .5 ? "walk" : "idle";
+      let dx = host.xSpeed || 0, dy = host.ySpeed || 0;
+      action === "attack" && host.target && !host.target.flags.dead &&
+        (dx = host.target.x - host.x, dy = host.target.y - host.y);
+      this.facing = this.direction(dx, dy);
+      this.play(action);
+      this.phase += dt;
+      host.scale.x = Math.abs(host.scaling || host.scale.x || 1);
+      const scale = ShadowHumanoidAnimator.displayScale;
+      this.sprite.position.set(0, 0);
+      this.sprite.rotation = 0;
+      this.sprite.scale.set(scale);
+      this.sprite.tint = host.flags.talented ? 0xffc36a : 0xffffff;
+      if (action === "idle") {
+        this.sprite.y = .25 * Math.sin(this.phase * 2.8)
+      } else if (action === "walk") {
+        this.sprite.y = -.5 * Math.abs(Math.sin(this.phase * 9));
+        this.sprite.rotation = .015 * Math.sin(this.phase * 9)
+      } else if (action === "attack") {
+        const progress = Math.max(0, Math.min(1, 1 - this.attackTime / .42));
+        const lunge = 1.2 * Math.sin(Math.PI * progress);
+        const vector = ShadowHumanoidAnimator.vectors[this.facing];
+        this.sprite.x = vector[0] * lunge;
+        this.sprite.y = vector[1] * lunge
+      } else if (action === "hurt") {
+        this.sprite.x = .6 * Math.sin(this.phase * 34);
+        this.sprite.rotation = .03 * Math.sin(this.phase * 34)
       }
     }
   }
@@ -290,7 +377,7 @@ var Incremancer;
             }), y = new PIXI.Sprite(f), y.visible = !1, y.alpha = 0, m.addChild(y), c.addChild(u), c.addChild(p), c.addChild(g), c.addChild(b), e.stage.addChild(c), e.stage.addChild(m), c.interactive = !0, c.interactiveChildren = !1, c.on("pointerdown", z), c.on("pointerup", I), c.on("pointerupoutside", I), c.on("pointermove", H), c.on("click", E), c.on("tap", E), document.getElementsByTagName("canvas")[0].onwheel = L, document.getElementsByTagName("canvas")[0].oncontextmenu = function(e) {
               e.preventDefault()
             }
-          }(e), e.loader.add("sprites/ground.json").add("sprites/megagraveyard.png").add("sprites/graveyard.json").add("sprites/buildings.json").add("sprites/humans.json").add("sprites/cop.json").add("sprites/dogs.json").add("sprites/army.json").add("sprites/doctor.json").add("sprites/zombie.json").add("sprites/golem.json").add("sprites/bonecollector.json").add("sprites/harpy.json").add("sprites/objects2.json").add("sprites/fenceposts.json").add("sprites/trees2.json").add("sprites/fortress.json").add("sprites/tank.json").add("sprites/skeleton.json").add("sprites/necromage-hd.json").load((function() {
+          }(e), e.loader.add("sprites/ground.json").add("sprites/megagraveyard.png").add("sprites/graveyard.json").add("sprites/buildings.json").add("sprites/humans.json").add("sprites/cop.json").add("sprites/dogs.json").add("sprites/army.json").add("sprites/doctor.json").add("sprites/zombie.json").add("sprites/golem.json").add("sprites/bonecollector.json").add("sprites/harpy.json").add("sprites/objects2.json").add("sprites/fenceposts.json").add("sprites/trees2.json").add("sprites/fortress.json").add("sprites/tank.json").add("sprites/skeleton.json").add("sprites/necromage-hd.json").add("sprites/shadow-humanoid.json").load((function() {
             v.app = e, N(), x = new PIXI.TilingSprite(PIXI.Texture.from("grass.png")), x.texture.baseTexture.mipmap = PIXI.MIPMAP_MODES.OFF, x.width = P.x, x.height = P.y, GameModel.getInstance().grassSprite = x, x.tint = GameModel.getInstance().persistentData.backgroundTint || 16777215, u.addChild(x), v.setupLevel(), setTimeout((function() {
               Z(!0)
             })), e.ticker.add((t => {
@@ -3868,14 +3955,20 @@ var Incremancer;
     createZombie(e, t, s = !1, forceProdigy = !1) {
       const i = Math.floor(Math.random() * this.textures.length);
       let a;
-      this.discardedZombies.length > 0 ? (a = this.discardedZombies.pop(), a.textures = s ? this.dogTexture : this.textures[i].animated) : a = new Ee(s ? this.dogTexture : this.textures[i].animated), a.zombie = !0, a.mod = 1, a.scaleMod = 1, this.super && (a.mod = 10, a.scaleMod = 1.5), a.flags = new Fe, a.flags.dog = s, a.flags.super = this.super, a.deadTexture = a.flags.dog ? this.deadDogTexture : this.textures[i].dead, a.textureId = i, a.burnDamage = 0, a.lastKnownBuilding = !1, a.alpha = 1, a.animationSpeed = .15, a.anchor.set(35 / 80, 1), a.bloodbornTimer = this.bloodborn, a.position.set(e, t), a.target = null, a.zIndex = a.position.y, a.visible = !0, a.maxHealth = a.health = this.model.zombieHealth * a.mod, a.regenTimer = 5, a.state = be.lookingForTarget;
+      this.discardedZombies.length > 0 ? a = this.discardedZombies.pop() : a = new Ee(s ? this.dogTexture : [PIXI.Texture.EMPTY]);
+      a.zombie = !0, a.mod = 1, a.scaleMod = 1, this.super && (a.mod = 10, a.scaleMod = 1.5), a.flags = new Fe, a.flags.dog = s, a.flags.super = this.super, a.textureId = i, a.burnDamage = 0, a.lastKnownBuilding = !1, a.alpha = 1, a.tint = 0xffffff, a.animationSpeed = .15, a.anchor.set(35 / 80, 1), a.bloodbornTimer = this.bloodborn, a.position.set(e, t), a.target = null, a.zIndex = a.position.y, a.visible = !0, a.maxHealth = a.health = this.model.zombieHealth * a.mod, a.regenTimer = 5, a.state = be.lookingForTarget;
+      if (s) {
+        a.textures = this.dogTexture, a.deadTexture = this.deadDogTexture, a.shadowAnimator && (a.shadowAnimator.sprite.visible = !1)
+      } else {
+        a.textures = [PIXI.Texture.EMPTY], a.deadTexture = [PIXI.Texture.EMPTY], a.shadowAnimator || (a.shadowAnimator = new ShadowHumanoidAnimator(a)), a.shadowAnimator.sprite.visible = !0
+      }
       (forceProdigy || this.model.zombieTalents && Math.random() < .01) && (
         a.flags.talented = !0, a.tint = 0xffaa00,
         a.darkorbTimer = Math.random() * 10
       );
       const r = s ? .7 : 1;
       a.scaling = a.scaleMod * this.scaling * r, a.scale.set(Math.random() > .5 ? a.scaling : -1 * a.scaling, a.scaling);
-      a.timer.attack = 0, a.xSpeed = 0, a.ySpeed = 0, a.speedMultiplier = 1, a.timer.scan = 0, a.timer.burnTick = this.burnTickTimer, a.timer.smoke = this.smokeTimer, a.play(), a.zombieId = this.currId++, this.zombies.push(a), g.addChild(a), this.smoke.newZombieSpawnCloud(e, t - 2)
+      a.timer.attack = 0, a.xSpeed = 0, a.ySpeed = 0, a.speedMultiplier = 1, a.timer.scan = 0, a.timer.burnTick = this.burnTickTimer, a.timer.smoke = this.smokeTimer, s ? a.play() : (a.stop(), a.shadowAnimator.reset()), a.zombieId = this.currId++, this.zombies.push(a), g.addChild(a), this.smoke.newZombieSpawnCloud(e, t - 2)
     }
     spawnZombie(e, t) {
       this.model.energy < this.model.zombieCost || (this.model.energy -= this.model.zombieCost, this.createZombie(e, t, !1))
@@ -3934,6 +4027,7 @@ var Incremancer;
     updateZombie(e, t) {
       var s;
       if (e.flags.dead) {
+        e.shadowAnimator && !e.flags.dog && e.shadowAnimator.update(t);
         if (!e.visible) return;
         return e.alpha -= this.fadeSpeed * t, void(e.alpha < 0 && (e.visible = !1, g.removeChild(e)))
       }
@@ -3947,12 +4041,12 @@ var Incremancer;
             e.state = be.attackingTarget;
             break
           }
-          e.timer.attack < 0 && s < this.model.spitDistance && (this.bullets.newBullet(e, e.target, this.model.zombieDamage / 2, !0), e.timer.attack = this.attackSpeed * (1 / (this.model.runeEffects.attackSpeed * this.model.ShockPCMod))), s > 3 * this.attackDistance && e.timer.scan < 0 && this.searchClosestTarget(e), this.updateZombieSpeed(e, t);
+          e.timer.attack < 0 && s < this.model.spitDistance && (e.shadowAnimator && !e.flags.dog && e.shadowAnimator.markAttack(), this.bullets.newBullet(e, e.target, this.model.zombieDamage / 2, !0), e.timer.attack = this.attackSpeed * (1 / (this.model.runeEffects.attackSpeed * this.model.ShockPCMod))), s > 3 * this.attackDistance && e.timer.scan < 0 && this.searchClosestTarget(e), this.updateZombieSpeed(e, t);
           break
         }
         case be.attackingTarget: {
           const s = this.fastDistance(e.position.x, e.position.y, e.target.x, e.target.y);
-          s < this.attackDistance ? (e.scale.x = e.target.x > e.x ? e.scaling : -e.scaling, e.timer.attack < 0 && (this.humans.damageHuman(e.target, this.calculateDamage(e)), e.flags.dog && (e.target.timer.dogStun = 1), Math.random() < this.model.infectedBiteChance && this.inflictPlague(e.target), e.timer.attack = this.attackSpeed * (1 / (this.model.runeEffects.attackSpeed * this.model.ShockPCMod)), e.flags.burning && (e.timer.attack *= 1 / this.model.burningSpeedMod)), s > this.attackDistance / 2 && this.updateZombieSpeed(e, t)) : e.state = be.movingToTarget;
+          s < this.attackDistance ? (e.scale.x = e.target.x > e.x ? e.scaling : -e.scaling, e.timer.attack < 0 && (e.shadowAnimator && !e.flags.dog && e.shadowAnimator.markAttack(), this.humans.damageHuman(e.target, this.calculateDamage(e)), e.flags.dog && (e.target.timer.dogStun = 1), Math.random() < this.model.infectedBiteChance && this.inflictPlague(e.target), e.timer.attack = this.attackSpeed * (1 / (this.model.runeEffects.attackSpeed * this.model.ShockPCMod)), e.flags.burning && (e.timer.attack *= 1 / this.model.burningSpeedMod)), s > this.attackDistance / 2 && this.updateZombieSpeed(e, t)) : e.state = be.movingToTarget;
           break
         }
       }
@@ -3964,7 +4058,7 @@ var Incremancer;
             this.bullets.newBullet(e, e.target, this.calculateDamage(e), !1, !1, !1, !0)
           )
         )
-      )
+      ), e.shadowAnimator && !e.flags.dog && e.shadowAnimator.update(t)
     }
     setSpeedMultiplier(e) {
       e.flags.burning ? e.speedMultiplier = this.model.burningSpeedMod : e.speedMultiplier = Math.max(Math.min(1, e.health / e.maxHealth), .4)
