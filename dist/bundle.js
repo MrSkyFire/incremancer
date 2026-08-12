@@ -6,6 +6,107 @@ var Incremancer;
   "use strict";
   var e = {};
 
+  class NecroMageAnimator {
+    static directions = ["E", "SE", "S", "SW", "W", "NW", "N", "NE"];
+    static vectors = { E: [1, 0], SE: [.7, .7], S: [0, 1], SW: [-.7, .7], W: [-1, 0], NW: [-.7, -.7], N: [0, -1], NE: [.7, -.7] };
+    static frames = { idle: 3, walk: 4, attack: 3, cast: 4, hurt: 2, death: 4 };
+    static speeds = { idle: .07, walk: .14, attack: .18, cast: .13, hurt: .18, death: .1 };
+    static bank = null;
+    static rect(ctx, x, y, w, h, color) {
+      ctx.fillStyle = color, ctx.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h))
+    }
+    static polygon(ctx, points, color) {
+      ctx.fillStyle = color, ctx.beginPath(), ctx.moveTo(points[0][0], points[0][1]);
+      for (let i = 1; i < points.length; i++) ctx.lineTo(points[i][0], points[i][1]);
+      ctx.closePath(), ctx.fill()
+    }
+    static magic(ctx, x, y, frame, large = !1) {
+      const r = large ? 6 : 4;
+      ctx.globalAlpha = .2, this.rect(ctx, x - r, y - r, 2 * r, 2 * r, "#20ff92"), ctx.globalAlpha = .55,
+        this.rect(ctx, x - 3, y - 3, 6, 6, "#35ffa6"), ctx.globalAlpha = 1,
+        this.rect(ctx, x - 2, y - 2, 4, 4, "#c8ffe5"), this.rect(ctx, x - 1, y - 1, 2, 2, "#fff"),
+        frame & 1 && this.rect(ctx, x, y - 5, 1, 2, "#64ffbd")
+    }
+    static drawFrame(direction, state, frame) {
+      const canvas = document.createElement("canvas");
+      canvas.width = canvas.height = 48;
+      const ctx = canvas.getContext("2d"), v = this.vectors[direction], north = v[1] < -.45,
+        bob = state === "idle" && frame === 1 || state === "walk" && (frame & 1) ? -1 : 0,
+        lean = state === "attack" ? frame === 1 ? 2 : 1 : state === "cast" && frame ? 1 : state === "hurt" ? frame ? 1 : -2 : 0,
+        cx = 24 + Math.round(v[0] * (2 + lean)), hoodY = 13 + bob, bodyY = 20 + bob;
+      ctx.imageSmoothingEnabled = !1, ctx.globalAlpha = .3, this.rect(ctx, 15, 41, 18, 3, "#000"), ctx.globalAlpha = 1;
+      this.polygon(ctx, [[cx - 8, bodyY - 2], [cx + 7, bodyY - 2], [cx + 10 + 2 * v[0], 39], [cx - 11 + 2 * v[0], 39]], "#170a22");
+      this.polygon(ctx, [[cx - 7, bodyY - 1], [cx + 6, bodyY - 1], [cx + 8 + 2 * v[0], 38], [cx - 9 + 2 * v[0], 38]], north ? "#35104c" : "#4d176e");
+      this.rect(ctx, cx - 4, bodyY + 8, 3, 13, "#702590"), this.rect(ctx, cx + 2, bodyY + 7, 3, 14, "#321047"),
+        this.rect(ctx, cx - 8, 37, 16, 2, "#d39232"), this.rect(ctx, cx - 8, hoodY + 2, 16, 8, "#1a0928"),
+        this.rect(ctx, cx - 7, hoodY + 1, 14, 7, "#4d1768"), this.rect(ctx, cx - 6, hoodY - 4, 12, 9, "#1c0a29"),
+        this.rect(ctx, cx - 5, hoodY - 3, 10, 8, north ? "#4c1767" : "#621e81"), this.rect(ctx, cx - 4, hoodY - 5, 8, 3, "#762c99"),
+        this.rect(ctx, cx - 7, bodyY + 1, 2, 14, "#d79a37"), this.rect(ctx, cx + 5, bodyY + 1, 2, 13, "#a66b24"), this.rect(ctx, cx - 6, bodyY + 3, 12, 2, "#d79a37");
+      if (!north) {
+        const shift = v[0] > .2 ? 1 : v[0] < -.2 ? -1 : 0;
+        this.rect(ctx, cx - 5, hoodY - 5, 10, 10, "#17121b"), this.rect(ctx, cx - 4, hoodY - 4, 8, 7, "#d8cfb5"),
+          this.rect(ctx, cx - 3, hoodY + 3, 6, 2, "#9f9681"), this.rect(ctx, cx - 3 + shift, hoodY - 2, 2, 2, "#101015"),
+          this.rect(ctx, cx + 1 + shift, hoodY - 2, 2, 2, "#101015"), this.rect(ctx, cx - 2 + shift, hoodY - 1, 1, 1, "#35ff9d"), this.rect(ctx, cx + 2 + shift, hoodY - 1, 1, 1, "#35ff9d")
+      }
+      const step = state === "walk" ? frame % 4 : 0, foot = step === 1 ? -2 : step === 3 ? 2 : 0;
+      this.rect(ctx, cx - 7 + foot, 39, 7, 3, "#c78a35"), this.rect(ctx, cx + 1 - foot, 39, 7, 3, "#c78a35");
+      let side = v[0] < -.1 ? -1 : 1, staffX = cx + 10 * side, staffY = 10 + bob, handX = cx + 7 * side, endY = 39;
+      direction === "N" && (side = -1, staffX = cx - 10), state === "attack" && (staffX = cx + Math.round(v[0] * (frame ? 13 : 8)), staffY = frame ? 19 + Math.round(4 * v[1]) : 8, endY = frame ? 30 : 39),
+        state === "cast" && (staffX = cx + side * (frame < 2 ? 9 : 7), staffY = frame ? 8 : 10), state === "hurt" && (staffX += 2 * side, staffY += 3);
+      for (let i = 0; i < 15; i++) { const p = i / 14; this.rect(ctx, staffX + (handX - staffX) * p - 1, staffY + (endY - staffY) * p, 3, 3, "#5b341b") }
+      this.rect(ctx, staffX - 3, staffY - 3, 7, 7, "#d8cfb4"), this.rect(ctx, staffX - 2, staffY - 2, 5, 5, "#29202b"), this.magic(ctx, staffX + side, staffY - 4, frame, state === "cast");
+      state === "cast" && frame && this.magic(ctx, cx + Math.round(v[0] * (9 + 2 * frame)), bodyY + 1 + Math.round(4 * v[1]), frame, !0);
+      if (state === "attack" && frame === 2) { const x = cx + Math.round(15 * v[0]), y = bodyY + Math.round(8 * v[1]); this.magic(ctx, x, y, frame); for (let i = 0; i < 4; i++) this.rect(ctx, x + 3 * i * v[0], y + 3 * i * v[1], 2, 2, "#39f5a0") }
+      state === "hurt" && (ctx.globalAlpha = frame ? .12 : .28, this.rect(ctx, 10, 8, 28, 34, "#ff5a76"), ctx.globalAlpha = 1);
+      if (state === "death") {
+        ctx.clearRect(0, 0, 48, 48), ctx.globalAlpha = .3, this.rect(ctx, 9, 42, 30, 3, "#000"), ctx.globalAlpha = Math.max(.35, 1 - .18 * frame);
+        const fall = 5 * frame, left = v[0] < 0;
+        frame < 2 ? (this.polygon(ctx, [[15 + (left ? -fall : fall), 21 + fall], [30 + (left ? -fall : fall), 22 + fall], [34, 40], [12, 40]], "#4d176e"),
+          this.rect(ctx, 18 + (left ? -fall : fall), 19 + fall, 9, 7, "#d8cfb5")) : (this.rect(ctx, 9, 35 + frame, 31, 5, "#170a22"),
+          this.rect(ctx, 12, 33 + frame, 25, 5, "#4d176e"), this.rect(ctx, left ? 12 : 30, 31 + frame, 7, 5, "#d8cfb5"));
+        frame === 3 && (ctx.globalAlpha = .5, this.rect(ctx, 15, 29, 3, 3, "#2cff9a"), this.rect(ctx, 23, 27, 2, 2, "#2cff9a"))
+      }
+      return PIXI.Texture.from(canvas)
+    }
+    static textures() {
+      if (this.bank) return this.bank;
+      this.bank = {};
+      for (const direction of this.directions) {
+        this.bank[direction] = {};
+        for (const state of Object.keys(this.frames)) {
+          this.bank[direction][state] = [];
+          for (let frame = 0; frame < this.frames[state]; frame++) this.bank[direction][state].push(this.drawFrame(direction, state, frame))
+        }
+      }
+      return this.bank
+    }
+    constructor(host) {
+      this.host = host, this.facing = "S", this.state = "idle", this.hurtTime = 0, this.castTime = 0, this.attackTime = 0, this.previousHealth = host.health;
+      this.sprite = new PIXI.AnimatedSprite(NecroMageAnimator.textures().S.idle), this.sprite.anchor.set(.5, 1), this.sprite.scale.set(1.12), this.sprite.animationSpeed = NecroMageAnimator.speeds.idle,
+        this.sprite.play(), host.addChildAt(this.sprite, 0)
+    }
+    direction(dx, dy) {
+      if (Math.abs(dx) + Math.abs(dy) < .2) return this.facing;
+      let index = Math.round(Math.atan2(dy, dx) / (Math.PI / 4));
+      return index < 0 && (index += 8), NecroMageAnimator.directions[index % 8]
+    }
+    play(state) {
+      const key = this.facing + ":" + state, frames = NecroMageAnimator.textures()[this.facing][state];
+      this.key !== key && (this.key = key, this.state = state, this.sprite.textures = frames, this.sprite.animationSpeed = NecroMageAnimator.speeds[state],
+        this.sprite.loop = state === "idle" || state === "walk", this.sprite.gotoAndPlay(0))
+    }
+    markAttack() { this.attackTime = .56 }
+    markCast() { this.castTime = .88 }
+    update(dt) {
+      const host = this.host;
+      host.health < this.previousHealth && !host.flags.dead && (this.hurtTime = .38), this.previousHealth = host.health,
+        this.hurtTime = Math.max(0, this.hurtTime - dt), this.castTime = Math.max(0, this.castTime - dt), this.attackTime = Math.max(0, this.attackTime - dt);
+      const action = host.flags.dead ? "death" : this.hurtTime > 0 ? "hurt" : this.castTime > 0 ? "cast" : this.attackTime > 0 ? "attack" : Math.abs(host.xSpeed) > .5 || Math.abs(host.ySpeed) > .5 ? "walk" : "idle";
+      let dx = host.xSpeed || 0, dy = host.ySpeed || 0;
+      (action === "attack" || action === "cast") && host.target && !host.target.flags.dead && (dx = host.target.x - host.x, dy = host.target.y - host.y), this.facing = this.direction(dx, dy), this.play(action)
+    }
+  }
+
   /* ================================================================
    *  UTILITY FUNCTIONS
    * ================================================================ */
@@ -348,9 +449,13 @@ var Incremancer;
     getUnlockedSpells() {
       return this.spells.filter((e => e.unlocked))
     }
+    markNecroCast() {
+      const e = new SkeletonChampion;
+      for (let t = 0; t < e.skeletons.length; t++) e.skeletons[t].visible && !e.skeletons[t].netSkeleton && e.skeletons[t].necroAnimator && e.skeletons[t].necroAnimator.markCast()
+    }
     castSpell(e) {
       const t = GameModel.getInstance();
-      e.onCooldown || e.active || !e.unlocked || e.energyCost - this.costReduction > t.energy || (t.energy -= e.energyCost - this.costReduction, e.onCooldown = !0, e.cooldownLeft = e.cooldown * this.cooldownReduction, e.active = !0, e.timer = e.duration + this.timeExtension, e.start(), this.applySpellBuffStart(e, t), t.sendMessage(e.name, "chat-spell"))
+      e.onCooldown || e.active || !e.unlocked || e.energyCost - this.costReduction > t.energy || (this.markNecroCast(), t.energy -= e.energyCost - this.costReduction, e.onCooldown = !0, e.cooldownLeft = e.cooldown * this.cooldownReduction, e.active = !0, e.timer = e.duration + this.timeExtension, e.start(), this.applySpellBuffStart(e, t), t.sendMessage(e.name, "chat-spell"))
     }
     hasActiveBuff(buffId) {
       const t = GameModel.getInstance();
@@ -377,7 +482,7 @@ var Incremancer;
     }
     castSpellNoMana(e) {
       const t = this.spellMap.get(e);
-      t && !t.active && (t.active = !0, t.timer = t.duration + this.timeExtension, t.start(), GameModel.getInstance().sendMessage(t.name, "chat-spell"))
+      t && !t.active && (this.markNecroCast(), t.active = !0, t.timer = t.duration + this.timeExtension, t.start(), GameModel.getInstance().sendMessage(t.name, "chat-spell"))
     }
     updateSpells(e) {
       for (let t = 0; t < this.spells.length; t++) {
@@ -4173,14 +4278,14 @@ var Incremancer;
       for (let t = 0; t < this.skeletons.length; t++) this.skeletons[t].flags.dead || this.skeletons[t].netSkeleton ? (this.discardedSprites.push(this.skeletons[t]), g.removeChild(this.skeletons[t])) : (e.push(this.skeletons[t]), this.skeletons[t].x = this.graveyard.sprite.x, this.skeletons[t].zIndex = this.skeletons[t].y = this.graveyard.sprite.y + (this.graveyard.level > 2 ? 8 : 0), this.skeletons[t].target = null, this.skeletons[t].state = be.lookingForTarget, this.skeletons[t].timer.scan = 0);
       this.skeletons = e, this.aliveSkeletons = [], this.lootChance = .00125, this.persistent.level > 10 * this.model.level && (this.lootChance *= 1.85), this.persistent.level > 5 * this.model.level && (this.lootChance *= 1.65), this.persistent.level > 2 * this.model.level && (this.lootChance *= 1.33), this.persistent.level < this.model.level / 2 && (this.lootChance *= .2), this.persistent.level < this.model.level && (this.lootChance *= .33)
     }
-    spawnCreature() {
-      let e;
-      this.discardedSprites.length > 0 ? (e = this.discardedSprites.pop(), e.textures = this.textures.down) : (e = new Le(this.textures.down), e.addChild(e.boneshieldContainer), e.boneshieldContainer.position.set(0, -16), e.boneshieldContainer.radius = 16), e.tint = 15658734, e.netSkeleton = !1, e.immuneToBurns = !1, e.bulletReflect = 0, e.zombie = !0, e.textureSet = this.textures, e.deadTexture = this.textures.dead, e.currentDirection = this.directions.down, e.flags = new K, e.burnDamage = 0, e.lastKnownBuilding = !1, e.alpha = 1, e.animationSpeed = .15, e.anchor.set(8.5 / 16, 1), e.position.set(this.graveyard.sprite.x, this.graveyard.sprite.y + (this.graveyard.level > 2 ? 8 : 0)), e.target = null, e.zIndex = e.position.y, e.visible = !0, e.maxHealth = e.health = 10 * this.model.zombieHealth, e.attackDamage = 10 * this.model.zombieDamage, e.regenTimer = 5, e.state = be.lookingForTarget, e.scaling = this.scaling, e.scale.set(e.scaling, e.scaling), e.timer.ability = 4 * Math.random(), e.timer.attack = 0, e.timer.scan = 0, e.timer.burnTick = this.burnTickTimer, e.timer.smoke = this.smokeTimer, e.xSpeed = 0, e.ySpeed = 0, e.speedMultiplier = 1, e.maxSpeed = this.moveSpeed, e.play(), e.zombieId = this.currId++, this.skeletons.push(e), g.addChild(e), this.smoke.newZombieSpawnCloud(e.x, e.y - 2);
+    spawnCreature(legacyVisual = !1) {
+      let e, legacyIndex = legacyVisual ? this.discardedSprites.findIndex((e => !e.necroAnimator)) : -1;
+      legacyIndex >= 0 ? (e = this.discardedSprites.splice(legacyIndex, 1)[0], e.textures = this.textures.down) : (e = new Le(legacyVisual ? this.textures.down : [PIXI.Texture.EMPTY]), e.addChild(e.boneshieldContainer), e.boneshieldContainer.position.set(0, -16), e.boneshieldContainer.radius = 16), e.tint = 15658734, e.netSkeleton = legacyVisual, e.immuneToBurns = !1, e.bulletReflect = 0, e.zombie = !0, e.textureSet = this.textures, e.deadTexture = this.textures.dead, e.currentDirection = this.directions.down, e.flags = new K, e.burnDamage = 0, e.lastKnownBuilding = !1, e.alpha = 1, e.animationSpeed = .15, e.anchor.set(8.5 / 16, 1), e.position.set(this.graveyard.sprite.x, this.graveyard.sprite.y + (this.graveyard.level > 2 ? 8 : 0)), e.target = null, e.zIndex = e.position.y, e.visible = !0, e.maxHealth = e.health = 10 * this.model.zombieHealth, e.attackDamage = 10 * this.model.zombieDamage, e.regenTimer = 5, e.state = be.lookingForTarget, e.scaling = this.scaling, e.scale.set(e.scaling, e.scaling), e.timer.ability = 4 * Math.random(), e.timer.attack = 0, e.timer.scan = 0, e.timer.burnTick = this.burnTickTimer, e.timer.smoke = this.smokeTimer, e.xSpeed = 0, e.ySpeed = 0, e.speedMultiplier = 1, e.maxSpeed = this.moveSpeed, legacyVisual ? e.play() : (e.stop(), e.necroAnimator = new NecroMageAnimator(e)), e.zombieId = this.currId++, this.skeletons.push(e), g.addChild(e), this.smoke.newZombieSpawnCloud(e.x, e.y - 2);
       return e
     }
     spawnNetSkeleton(costScale, x, y) {
-      const e = this.spawnCreature();
-      e.netSkeleton = !0, e.tint = 0x9999ff;
+      const e = this.spawnCreature(!0);
+      e.tint = 0x9999ff;
       e.maxHealth = e.health = e.maxHealth * costScale;
       e.attackDamage = e.attackDamage * costScale;
       if (x !== undefined) e.position.set(x, y), e.zIndex = y;
@@ -4198,6 +4303,7 @@ var Incremancer;
     }
     updateCreature(e, t) {
       if (e.flags.dead) {
+        e.necroAnimator && e.necroAnimator.update(t);
         if (!e.visible) return;
         return e.alpha -= this.fadeSpeed * t, void(e.alpha < 0 && (e.visible = !1, g.removeChild(e)))
       }
@@ -4217,13 +4323,14 @@ var Incremancer;
         case be.attackingTarget: {
           const s = this.fastDistance(e.position.x, e.position.y, e.target.x, e.target.y);
           if (s < this.attackDistance) {
-            if (e.timer.attack < 0 && !e.target.flags.dead && (this.humans.damageHuman(e.target, this.calculateDamage(e)), e.target.flags.dead && this.killingBlow(e.target), e.timer.attack = this.attackSpeed * (1 / (this.model.runeEffects.attackSpeed * this.model.ShockPCMod)), e.flags.burning && (e.timer.attack *= 1 / this.model.burningSpeedMod), this.randomSpells.length > 0))
+            if (e.timer.attack < 0 && !e.target.flags.dead && (e.necroAnimator && e.necroAnimator.markAttack(), this.humans.damageHuman(e.target, this.calculateDamage(e)), e.target.flags.dead && this.killingBlow(e.target), e.timer.attack = this.attackSpeed * (1 / (this.model.runeEffects.attackSpeed * this.model.ShockPCMod)), e.flags.burning && (e.timer.attack *= 1 / this.model.burningSpeedMod), this.randomSpells.length > 0))
               for (let e = 0; e < this.randomSpells.length; e++) this.spellTimer < 0 && Math.random() < .07 + this.increaseChance && (this.spells.castSpellNoMana(this.randomSpells[e]), this.spellTimer = 3);
             s > this.attackDistance / 2 && this.updateCreatureSpeed(e, t)
           } else e.state = be.movingToTarget;
           break
         }
       }
+      e.necroAnimator && e.necroAnimator.update(t)
     }
     killingBlow(e) {
       this.killingBlowParts && ((() => { const amt = this.killingBlowParts * this.partFactory.factoryStats().partsPerSec;
@@ -4244,6 +4351,7 @@ var Incremancer;
       return Math.abs(e.xSpeed) > Math.abs(e.ySpeed) ? e.xSpeed < 0 ? this.directions.left : this.directions.right : e.ySpeed < 0 ? this.directions.up : this.directions.down
     }
     changeTextureDirection(e) {
+      if (e.necroAnimator) return;
       const t = this.getCreatureDirection(e);
       if (t !== e.currentDirection) {
         switch (t) {
