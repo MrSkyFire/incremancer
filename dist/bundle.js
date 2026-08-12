@@ -9,86 +9,137 @@ var Incremancer;
   class NecroMageAnimator {
     static directions = ["E", "SE", "S", "SW", "W", "NW", "N", "NE"];
     static vectors = { E: [1, 0], SE: [.7, .7], S: [0, 1], SW: [-.7, .7], W: [-1, 0], NW: [-.7, -.7], N: [0, -1], NE: [.7, -.7] };
-    static frames = { idle: 3, walk: 4, attack: 3, cast: 4, hurt: 2, death: 4 };
-    static speeds = { idle: .07, walk: .14, attack: .18, cast: .13, hurt: .18, death: .1 };
-    static bank = null;
-    static rect(ctx, x, y, w, h, color) {
-      ctx.fillStyle = color, ctx.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h))
+    static frames = { idle: 5, walk: 6, attack: 7, cast: 6, hurt: 3, death: 6 };
+    static speeds = { idle: .08, walk: .14, attack: .2, cast: .14, hurt: .2, death: .12 };
+    static size = 224;
+    static ground = 190;
+    static bank = {};
+    static ellipse(ctx, x, y, rx, ry, fill, stroke = null, width = 1, alpha = 1) {
+      ctx.save(), ctx.globalAlpha = alpha, ctx.beginPath(), ctx.ellipse(x, y, rx, ry, 0, 0, 2 * Math.PI), ctx.fillStyle = fill, ctx.fill();
+      stroke && (ctx.strokeStyle = stroke, ctx.lineWidth = width, ctx.stroke()), ctx.restore()
     }
-    static polygon(ctx, points, color) {
-      ctx.fillStyle = color, ctx.beginPath(), ctx.moveTo(points[0][0], points[0][1]);
-      for (let i = 1; i < points.length; i++) ctx.lineTo(points[i][0], points[i][1]);
-      ctx.closePath(), ctx.fill()
+    static rounded(ctx, x, y, w, h, r, fill, stroke = null, width = 1) {
+      const rr = Math.min(r, Math.abs(w) / 2, Math.abs(h) / 2);
+      ctx.beginPath(), ctx.moveTo(x + rr, y), ctx.lineTo(x + w - rr, y), ctx.quadraticCurveTo(x + w, y, x + w, y + rr),
+        ctx.lineTo(x + w, y + h - rr), ctx.quadraticCurveTo(x + w, y + h, x + w - rr, y + h), ctx.lineTo(x + rr, y + h),
+        ctx.quadraticCurveTo(x, y + h, x, y + h - rr), ctx.lineTo(x, y + rr), ctx.quadraticCurveTo(x, y, x + rr, y), ctx.closePath(),
+        ctx.fillStyle = fill, ctx.fill(), stroke && (ctx.strokeStyle = stroke, ctx.lineWidth = width, ctx.stroke())
     }
-    static magic(ctx, x, y, frame, large = !1) {
-      const r = large ? 6 : 4;
-      ctx.globalAlpha = .2, this.rect(ctx, x - r, y - r, 2 * r, 2 * r, "#20ff92"), ctx.globalAlpha = .55,
-        this.rect(ctx, x - 3, y - 3, 6, 6, "#35ffa6"), ctx.globalAlpha = 1,
-        this.rect(ctx, x - 2, y - 2, 4, 4, "#c8ffe5"), this.rect(ctx, x - 1, y - 1, 2, 2, "#fff"),
-        frame & 1 && this.rect(ctx, x, y - 5, 1, 2, "#64ffbd")
+    static glow(ctx, x, y, radius, pulse = 0) {
+      const r = radius * (1 + .12 * pulse), aura = ctx.createRadialGradient(x, y, 1, x, y, 1.8 * r);
+      aura.addColorStop(0, "rgba(235,255,248,.98)"), aura.addColorStop(.18, "rgba(92,255,184,.95)"),
+        aura.addColorStop(.55, "rgba(22,214,128,.42)"), aura.addColorStop(1, "rgba(12,105,70,0)"),
+        ctx.fillStyle = aura, ctx.beginPath(), ctx.arc(x, y, 1.8 * r, 0, 2 * Math.PI), ctx.fill(),
+        this.ellipse(ctx, x, y, .36 * r, .36 * r, "#f4fff9", "#63ffc0", 1.5)
     }
     static drawFrame(direction, state, frame) {
       const canvas = document.createElement("canvas");
-      canvas.width = canvas.height = 48;
-      const ctx = canvas.getContext("2d"), v = this.vectors[direction], north = v[1] < -.45,
-        bob = state === "idle" && frame === 1 || state === "walk" && (frame & 1) ? -1 : 0,
-        lean = state === "attack" ? frame === 1 ? 2 : 1 : state === "cast" && frame ? 1 : state === "hurt" ? frame ? 1 : -2 : 0,
-        cx = 24 + Math.round(v[0] * (2 + lean)), hoodY = 13 + bob, bodyY = 20 + bob;
-      ctx.imageSmoothingEnabled = !1, ctx.globalAlpha = .3, this.rect(ctx, 15, 41, 18, 3, "#000"), ctx.globalAlpha = 1;
-      this.polygon(ctx, [[cx - 8, bodyY - 2], [cx + 7, bodyY - 2], [cx + 10 + 2 * v[0], 39], [cx - 11 + 2 * v[0], 39]], "#170a22");
-      this.polygon(ctx, [[cx - 7, bodyY - 1], [cx + 6, bodyY - 1], [cx + 8 + 2 * v[0], 38], [cx - 9 + 2 * v[0], 38]], north ? "#35104c" : "#4d176e");
-      this.rect(ctx, cx - 4, bodyY + 8, 3, 13, "#702590"), this.rect(ctx, cx + 2, bodyY + 7, 3, 14, "#321047"),
-        this.rect(ctx, cx - 8, 37, 16, 2, "#d39232"), this.rect(ctx, cx - 8, hoodY + 2, 16, 8, "#1a0928"),
-        this.rect(ctx, cx - 7, hoodY + 1, 14, 7, "#4d1768"), this.rect(ctx, cx - 6, hoodY - 4, 12, 9, "#1c0a29"),
-        this.rect(ctx, cx - 5, hoodY - 3, 10, 8, north ? "#4c1767" : "#621e81"), this.rect(ctx, cx - 4, hoodY - 5, 8, 3, "#762c99"),
-        this.rect(ctx, cx - 7, bodyY + 1, 2, 14, "#d79a37"), this.rect(ctx, cx + 5, bodyY + 1, 2, 13, "#a66b24"), this.rect(ctx, cx - 6, bodyY + 3, 12, 2, "#d79a37");
-      if (!north) {
-        const shift = v[0] > .2 ? 1 : v[0] < -.2 ? -1 : 0;
-        this.rect(ctx, cx - 5, hoodY - 5, 10, 10, "#17121b"), this.rect(ctx, cx - 4, hoodY - 4, 8, 7, "#d8cfb5"),
-          this.rect(ctx, cx - 3, hoodY + 3, 6, 2, "#9f9681"), this.rect(ctx, cx - 3 + shift, hoodY - 2, 2, 2, "#101015"),
-          this.rect(ctx, cx + 1 + shift, hoodY - 2, 2, 2, "#101015"), this.rect(ctx, cx - 2 + shift, hoodY - 1, 1, 1, "#35ff9d"), this.rect(ctx, cx + 2 + shift, hoodY - 1, 1, 1, "#35ff9d")
+      canvas.width = canvas.height = this.size;
+      const ctx = canvas.getContext("2d"), v = this.vectors[direction], back = v[1] < -.45, side = v[0] < -.1 ? -1 : 1,
+        phase = 2 * Math.PI * frame / this.frames[state], walk = state === "walk" ? Math.sin(phase) : 0,
+        bob = state === "walk" ? -2.5 * Math.abs(walk) : state === "idle" ? 1.7 * Math.sin(phase) : state === "cast" ? 2 * Math.sin(phase) : 0,
+        attackCurve = [0, .18, .5, 1, .82, .42, 0], attack = state === "attack" ? attackCurve[frame] : 0,
+        pulse = state === "cast" ? .5 + .5 * Math.sin(phase) : 0, hurt = state === "hurt" ? (frame - 1) * 5 : 0,
+        cx = 112 + 5 * v[0] + attack * 7 * v[0] + hurt, ground = this.ground, hoodY = 68 + bob + attack * 3 * v[1], shoulderY = 99 + bob;
+      ctx.imageSmoothingEnabled = !0, ctx.lineCap = "round", ctx.lineJoin = "round";
+      this.ellipse(ctx, cx, ground + 1, 39 + 8 * attack, 9, "#07160d", null, 0, .32);
+
+      if (state === "death" && frame >= 3) {
+        const fallSide = v[0] < 0 ? -1 : 1, settle = (frame - 2) / 3, bodyX = cx + 23 * fallSide * settle;
+        ctx.beginPath(), ctx.moveTo(bodyX - 54, ground - 8), ctx.bezierCurveTo(bodyX - 32, ground - 33, bodyX + 32, ground - 33, bodyX + 55, ground - 7),
+          ctx.bezierCurveTo(bodyX + 25, ground + 2, bodyX - 28, ground + 3, bodyX - 54, ground - 8), ctx.closePath();
+        const fallenRobe = ctx.createLinearGradient(bodyX, ground - 34, bodyX, ground + 2);
+        fallenRobe.addColorStop(0, "#74349a"), fallenRobe.addColorStop(1, "#24102f"), ctx.fillStyle = fallenRobe, ctx.fill(), ctx.strokeStyle = "#170a20", ctx.lineWidth = 4, ctx.stroke(),
+          this.ellipse(ctx, bodyX + 48 * fallSide, ground - 18, 21, 17, "#331342", "#16091d", 4),
+          this.ellipse(ctx, bodyX + 51 * fallSide, ground - 18, 12, 10, "#cfc9ba", "#342c35", 2),
+          ctx.strokeStyle = "#6b4027", ctx.lineWidth = 7, ctx.beginPath(), ctx.moveTo(bodyX - 68, ground - 12), ctx.lineTo(bodyX + 73, ground - 10), ctx.stroke(),
+          ctx.strokeStyle = "#d8a84b", ctx.lineWidth = 4, ctx.beginPath(), ctx.moveTo(bodyX - 31, ground - 9), ctx.lineTo(bodyX + 27, ground - 9), ctx.stroke();
+        frame === 5 && (this.glow(ctx, bodyX - 14, ground - 45, 9, 1), this.glow(ctx, bodyX + 18, ground - 51, 6, 0));
+        const texture = PIXI.Texture.from(canvas);
+        return texture.baseTexture.scaleMode = PIXI.SCALE_MODES.LINEAR, texture
       }
-      const step = state === "walk" ? frame % 4 : 0, foot = step === 1 ? -2 : step === 3 ? 2 : 0;
-      this.rect(ctx, cx - 7 + foot, 39, 7, 3, "#c78a35"), this.rect(ctx, cx + 1 - foot, 39, 7, 3, "#c78a35");
-      let side = v[0] < -.1 ? -1 : 1, staffX = cx + 10 * side, staffY = 10 + bob, handX = cx + 7 * side, endY = 39;
-      direction === "N" && (side = -1, staffX = cx - 10), state === "attack" && (staffX = cx + Math.round(v[0] * (frame ? 13 : 8)), staffY = frame ? 19 + Math.round(4 * v[1]) : 8, endY = frame ? 30 : 39),
-        state === "cast" && (staffX = cx + side * (frame < 2 ? 9 : 7), staffY = frame ? 8 : 10), state === "hurt" && (staffX += 2 * side, staffY += 3);
-      for (let i = 0; i < 15; i++) { const p = i / 14; this.rect(ctx, staffX + (handX - staffX) * p - 1, staffY + (endY - staffY) * p, 3, 3, "#5b341b") }
-      this.rect(ctx, staffX - 3, staffY - 3, 7, 7, "#d8cfb4"), this.rect(ctx, staffX - 2, staffY - 2, 5, 5, "#29202b"), this.magic(ctx, staffX + side, staffY - 4, frame, state === "cast");
-      state === "cast" && frame && this.magic(ctx, cx + Math.round(v[0] * (9 + 2 * frame)), bodyY + 1 + Math.round(4 * v[1]), frame, !0);
-      if (state === "attack" && frame === 2) { const x = cx + Math.round(15 * v[0]), y = bodyY + Math.round(8 * v[1]); this.magic(ctx, x, y, frame); for (let i = 0; i < 4; i++) this.rect(ctx, x + 3 * i * v[0], y + 3 * i * v[1], 2, 2, "#39f5a0") }
-      if (state === "hurt") {
-        const hitSide = frame ? 1 : -1;
-        this.rect(ctx, cx + 10 * hitSide, hoodY - 4, 2, 5, "#ff5a76"),
-          this.rect(ctx, cx + 8 * hitSide, hoodY + 3, 3, 2, "#ffb06b"),
-          this.rect(ctx, cx + 11 * hitSide, bodyY + 9, 2, 4, "#ff5a76")
-      }
+
       if (state === "death") {
-        ctx.clearRect(0, 0, 48, 48), ctx.globalAlpha = .3, this.rect(ctx, 9, 42, 30, 3, "#000"), ctx.globalAlpha = 1;
-        const fall = 5 * frame, left = v[0] < 0;
-        frame < 2 ? (this.polygon(ctx, [[15 + (left ? -fall : fall), 21 + fall], [30 + (left ? -fall : fall), 22 + fall], [34, 40], [12, 40]], "#4d176e"),
-          this.rect(ctx, 18 + (left ? -fall : fall), 19 + fall, 9, 7, "#d8cfb5")) : (this.rect(ctx, 9, 35 + frame, 31, 5, "#170a22"),
-          this.rect(ctx, 12, 33 + frame, 25, 5, "#4d176e"), this.rect(ctx, left ? 12 : 30, 31 + frame, 7, 5, "#d8cfb5"));
-        frame === 3 && (ctx.globalAlpha = .5, this.rect(ctx, 15, 29, 3, 3, "#2cff9a"), this.rect(ctx, 23, 27, 2, 2, "#2cff9a")), ctx.globalAlpha = 1
+        const fallSide = v[0] < 0 ? -1 : 1, angle = fallSide * frame * .18;
+        ctx.save(), ctx.translate(cx, ground - 3), ctx.rotate(angle), ctx.translate(-cx, -(ground - 3))
       }
-      return PIXI.Texture.from(canvas)
+
+      let staffHeadX = cx + 47 * side, staffHeadY = hoodY - 8, staffTailX = cx + 27 * side, staffTailY = ground - 5;
+      if (state === "attack") {
+        const reach = 52 + 45 * attack;
+        staffHeadX = cx + v[0] * reach + (Math.abs(v[0]) < .2 ? 18 * side : 0), staffHeadY = shoulderY - 5 + v[1] * reach,
+          staffTailX = cx - 24 * v[0] + 10 * side, staffTailY = shoulderY + 38 - 24 * v[1]
+      } else if (state === "cast") {
+        staffHeadX = cx + (43 - 8 * pulse) * side, staffHeadY = hoodY - 18 - 8 * pulse
+      }
+      ctx.strokeStyle = "#2a1720", ctx.lineWidth = 11, ctx.beginPath(), ctx.moveTo(staffTailX, staffTailY), ctx.lineTo(staffHeadX, staffHeadY), ctx.stroke(),
+        ctx.strokeStyle = "#704328", ctx.lineWidth = 7, ctx.beginPath(), ctx.moveTo(staffTailX, staffTailY), ctx.lineTo(staffHeadX, staffHeadY), ctx.stroke(),
+        ctx.strokeStyle = "#a86e3a", ctx.lineWidth = 2, ctx.beginPath(), ctx.moveTo(staffTailX + 2, staffTailY), ctx.lineTo(staffHeadX + 2, staffHeadY), ctx.stroke(),
+        this.ellipse(ctx, staffHeadX, staffHeadY, 15, 15, "#bbb6aa", "#312839", 4), this.ellipse(ctx, staffHeadX, staffHeadY, 9, 9, "#29343a", "#d8d2c4", 2),
+        this.glow(ctx, staffHeadX, staffHeadY, state === "cast" ? 19 : state === "attack" ? 15 : 11, pulse || attack);
+
+      const leftStep = state === "walk" ? 10 * walk : 0, rightStep = -leftStep;
+      this.rounded(ctx, cx - 28 + leftStep, ground - 14, 31, 15, 7, "#6f472c", "#261821", 3),
+        this.rounded(ctx, cx + 1 + rightStep, ground - 14, 31, 15, 7, "#6f472c", "#261821", 3);
+
+      ctx.beginPath(), ctx.moveTo(cx - 29, shoulderY), ctx.bezierCurveTo(cx - 38, shoulderY + 27, cx - 48 + 4 * walk, ground - 28, cx - 50 + 5 * walk, ground - 12),
+        ctx.quadraticCurveTo(cx, ground + 1, cx + 50 - 5 * walk, ground - 12), ctx.bezierCurveTo(cx + 47 - 4 * walk, ground - 38, cx + 36, shoulderY + 26, cx + 29, shoulderY), ctx.closePath();
+      const robe = ctx.createLinearGradient(cx - 42, shoulderY, cx + 44, ground);
+      robe.addColorStop(0, back ? "#512367" : "#7f38a5"), robe.addColorStop(.5, "#53206f"), robe.addColorStop(1, "#24102f"),
+        ctx.fillStyle = robe, ctx.fill(), ctx.strokeStyle = "#170a20", ctx.lineWidth = 5, ctx.stroke(),
+        ctx.strokeStyle = "#d8a84b", ctx.lineWidth = 5, ctx.beginPath(), ctx.moveTo(cx - 27, shoulderY + 25), ctx.quadraticCurveTo(cx, shoulderY + 34, cx + 27, shoulderY + 25), ctx.stroke(),
+        ctx.lineWidth = 4, ctx.beginPath(), ctx.moveTo(cx - 39, ground - 24), ctx.quadraticCurveTo(cx, ground - 14, cx + 40, ground - 24), ctx.stroke(),
+        ctx.strokeStyle = "rgba(183,91,220,.75)", ctx.lineWidth = 7, ctx.beginPath(), ctx.moveTo(cx - 12, shoulderY + 37), ctx.lineTo(cx - 17, ground - 27), ctx.stroke();
+
+      const handX = cx + 25 * side, handY = shoulderY + 18;
+      ctx.strokeStyle = "#32123f", ctx.lineWidth = 20, ctx.beginPath(), ctx.moveTo(cx + 20 * side, shoulderY + 7), ctx.lineTo(handX, handY), ctx.lineTo(staffHeadX + .68 * (staffTailX - staffHeadX), staffHeadY + .68 * (staffTailY - staffHeadY)), ctx.stroke(),
+        this.ellipse(ctx, handX, handY, 9, 8, "#d7d0c0", "#312733", 3);
+
+      ctx.beginPath(), ctx.moveTo(cx - 36, hoodY + 14), ctx.bezierCurveTo(cx - 39, hoodY - 22, cx - 22, hoodY - 39, cx, hoodY - 42),
+        ctx.bezierCurveTo(cx + 23, hoodY - 39, cx + 39, hoodY - 21, cx + 36, hoodY + 15), ctx.quadraticCurveTo(cx, hoodY + 35, cx - 36, hoodY + 14), ctx.closePath();
+      const hood = ctx.createLinearGradient(cx - 30, hoodY - 30, cx + 31, hoodY + 26);
+      hood.addColorStop(0, "#8b43b0"), hood.addColorStop(.48, back ? "#542266" : "#682887"), hood.addColorStop(1, "#2b1238"),
+        ctx.fillStyle = hood, ctx.fill(), ctx.strokeStyle = "#180a21", ctx.lineWidth = 5, ctx.stroke();
+      if (back) {
+        ctx.strokeStyle = "#9d55bd", ctx.lineWidth = 3, ctx.beginPath(), ctx.moveTo(cx - 15, hoodY - 25), ctx.quadraticCurveTo(cx, hoodY - 5, cx + 17, hoodY + 18), ctx.stroke()
+      } else {
+        const look = 6 * v[0];
+        this.ellipse(ctx, cx + look, hoodY - 1, 24, 27, "#170f1b", "#351943", 3),
+          this.ellipse(ctx, cx + look, hoodY + 1, 18, 21, "#d8d3c6", "#716b68", 2),
+          this.ellipse(ctx, cx - 7 + look, hoodY - 4, 5, 6, "#171219"), this.ellipse(ctx, cx + 7 + look, hoodY - 4, 5, 6, "#171219"),
+          this.glow(ctx, cx - 7 + look, hoodY - 4, 4, pulse), this.glow(ctx, cx + 7 + look, hoodY - 4, 4, pulse),
+          ctx.fillStyle = "#8d877d", ctx.beginPath(), ctx.moveTo(cx - 5 + look, hoodY + 8), ctx.lineTo(cx + 5 + look, hoodY + 8), ctx.lineTo(cx + 2 + look, hoodY + 15), ctx.lineTo(cx - 2 + look, hoodY + 15), ctx.closePath(), ctx.fill()
+      }
+
+      if (state === "cast") {
+        this.glow(ctx, cx - 31, shoulderY + 31, 12, pulse), this.glow(ctx, cx + 31, shoulderY + 31, 12, 1 - pulse);
+        ctx.strokeStyle = "rgba(97,255,188,.72)", ctx.lineWidth = 2, ctx.beginPath(), ctx.arc(cx, shoulderY + 32, 50 + 5 * pulse, 0, 2 * Math.PI), ctx.stroke()
+      }
+      if (state === "attack" && attack > .35) {
+        const trailX = staffHeadX - 25 * v[0], trailY = staffHeadY - 25 * v[1];
+        ctx.strokeStyle = "rgba(80,255,176,.7)", ctx.lineWidth = 8 + 5 * attack, ctx.beginPath(), ctx.moveTo(trailX, trailY), ctx.lineTo(staffHeadX, staffHeadY), ctx.stroke()
+      }
+      if (state === "hurt") {
+        const hitSide = frame === 1 ? -1 : 1;
+        ctx.strokeStyle = "#ff6b78", ctx.lineWidth = 5, ctx.beginPath(), ctx.moveTo(cx + 45 * hitSide, hoodY - 20), ctx.lineTo(cx + 32 * hitSide, hoodY - 4),
+          ctx.moveTo(cx + 48 * hitSide, shoulderY + 20), ctx.lineTo(cx + 34 * hitSide, shoulderY + 28), ctx.stroke()
+      }
+      state === "death" && ctx.restore();
+      const texture = PIXI.Texture.from(canvas);
+      return texture.baseTexture.scaleMode = PIXI.SCALE_MODES.LINEAR, texture
     }
-    static textures() {
-      if (this.bank) return this.bank;
-      this.bank = {};
-      for (const direction of this.directions) {
-        this.bank[direction] = {};
-        for (const state of Object.keys(this.frames)) {
-          this.bank[direction][state] = [];
-          for (let frame = 0; frame < this.frames[state]; frame++) this.bank[direction][state].push(this.drawFrame(direction, state, frame))
-        }
+    static textures(direction, state) {
+      this.bank[direction] || (this.bank[direction] = {});
+      if (!this.bank[direction][state]) {
+        this.bank[direction][state] = [];
+        for (let frame = 0; frame < this.frames[state]; frame++) this.bank[direction][state].push(this.drawFrame(direction, state, frame))
       }
-      return this.bank
+      return this.bank[direction][state]
     }
     constructor(host) {
       this.host = host, this.facing = "S", this.state = "idle", this.hurtTime = 0, this.castTime = 0, this.attackTime = 0, this.previousHealth = host.health;
-      this.sprite = new PIXI.AnimatedSprite(NecroMageAnimator.textures().S.idle), this.sprite.anchor.set(.5, 1), this.sprite.scale.set(1.12), this.sprite.animationSpeed = NecroMageAnimator.speeds.idle,
-        this.sprite.play(), host.addChildAt(this.sprite, 0)
+      this.sprite = new PIXI.AnimatedSprite(NecroMageAnimator.textures("S", "idle")), this.sprite.anchor.set(.5, NecroMageAnimator.ground / NecroMageAnimator.size),
+        this.sprite.scale.set(.4), this.sprite.animationSpeed = NecroMageAnimator.speeds.idle, this.sprite.roundPixels = !1, this.sprite.play(), host.addChildAt(this.sprite, 0)
     }
     direction(dx, dy) {
       if (Math.abs(dx) + Math.abs(dy) < .2) return this.facing;
@@ -96,7 +147,7 @@ var Incremancer;
       return index < 0 && (index += 8), NecroMageAnimator.directions[index % 8]
     }
     play(state) {
-      const key = this.facing + ":" + state, frames = NecroMageAnimator.textures()[this.facing][state];
+      const key = this.facing + ":" + state, frames = NecroMageAnimator.textures(this.facing, state);
       this.key !== key && (this.key = key, this.state = state, this.sprite.textures = frames, this.sprite.animationSpeed = NecroMageAnimator.speeds[state],
         this.sprite.loop = state === "idle" || state === "walk", this.sprite.gotoAndPlay(0))
     }

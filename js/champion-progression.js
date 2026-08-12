@@ -17,9 +17,15 @@
     return null;
   }
 
+  function ready(controller) {
+    var necro = controller && controller.model && controller.model.skeleton;
+    return !!(necro && necro.model && necro.model.sendMessage && necro.upgrades && necro.spells && controller.skeletonMenu);
+  }
+
   function install(controller) {
     var necro = controller.model.skeleton;
-    if (!necro || necro._killProgressionInstalled) return;
+    if (!ready(controller)) return false;
+    if (necro._killProgressionInstalled) return true;
     necro._killProgressionInstalled = true;
     var persistent = necro.persistent;
 
@@ -102,14 +108,15 @@
       return Math.min(100, Math.round(100 * necro.persistent.killProgress / necro.killsForNextLevel()));
     };
     console.log("[Incremancer] NecroMage progression installed");
+    return true;
   }
 
   angular.module("zombieApp").run(["$rootScope", "$timeout", function (root, timeout) {
     var attempts = 0;
     function boot() {
       var controller = findController(root);
-      if (controller) return install(controller);
-      if (++attempts < 80) timeout(boot, 100, false);
+      if (controller && install(controller)) return;
+      if (++attempts < 300) timeout(boot, 100, false);
       else console.error("[Incremancer] NecroMage could not find ZombieController");
     }
     timeout(boot, 0, false);
