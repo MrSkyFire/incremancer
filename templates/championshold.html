@@ -4,7 +4,7 @@
     <h2>NecroMage {{zm.skeletonMenu.trophies()}}
       <button ng-click="zm.skeletonMenu.changeTab('inventory')" class="{{zm.skeletonMenu.tab == 'inventory' ? 'active' : ''}}">Inventory</button>
       <button ng-click="zm.skeletonMenu.changeTab('talents')" class="{{zm.skeletonMenu.tab == 'talents' ? 'active' : ''}}">Talents</button>
-      <button data-champion-progression-tab="1" ng-click="zm.skeletonMenu.changeTab('progression')" class="{{zm.skeletonMenu.tab == 'progression' ? 'active' : ''}}">Progression</button>
+      <button ng-click="zm.skeletonMenu.tab = 'progression'" class="{{zm.skeletonMenu.tab == 'progression' ? 'active' : ''}}">Progression</button>
     </h2>
     <button ng-click="zm.skeletonMenu.show()">Close</button>
     <div style="clear: both;"></div>
@@ -147,7 +147,28 @@
       </div>
     </div>
   </div>
-  <div data-champion-progression-panel="1" class="ranges" ng-show="zm.skeletonMenu.tab == 'progression'"></div>
+  <div class="ranges" ng-if="zm.skeletonMenu.tab == 'progression'">
+    <h3>NecroMage Progression</h3>
+    <p>
+      <strong>Level {{zm.skeleton().level}}</strong><br/>
+      {{zm.skeleton().killProgress || 0}} / {{zm.skeletonMenu.killsForNextLevel()}} kills to next level<br/>
+      Total kills credited: {{zm.skeleton().totalKills || 0}}
+    </p>
+    <p>All human kills count toward NecroMage progression, no matter which undead unit lands the finishing blow.</p>
+    <h4>Spell Mastery</h4>
+    <p>
+      Manual casts gain <strong>+{{zm.skeletonMenu.manualDurationBonus()}}s</strong> duration from NecroMage level, plus any Endurance bonus.<br/>
+      Automatic casts use normal duration and their trigger chance increases with NecroMage level.
+    </p>
+    <ul>
+      <li ng-repeat="spell in zm.skeletonMenu.spellProgression() track by spell.id">
+        <strong>{{spell.name}}</strong>:
+        <span ng-if="spell.unlocked">unlocked — {{(spell.chance * 100).toFixed(1)}}% auto-cast chance (cap {{(spell.cap * 100).toFixed(0)}}%)</span>
+        <span ng-if="!spell.unlocked">unlocks at NecroMage level {{spell.unlockLevel}}</span>
+      </li>
+    </ul>
+    <p>Armor no longer grants automatic spell procs.</p>
+  </div>
   
 </div>
 <div class="level-select" ng-if="zm.skeletonMenu.isNewGearSetShown" id="new-gear-set">
