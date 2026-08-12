@@ -1,4 +1,4 @@
-const FORK_VERSION = "v1.2.9";
+const FORK_VERSION = "v1.3.0";
 const FORK_VERSION_DATE = "2026-08-12";
 console.log("[Incremancer fork] " + FORK_VERSION + " (" + FORK_VERSION_DATE + ")");
 var Incremancer;
@@ -191,11 +191,20 @@ var Incremancer;
   class DarkCityNpcAnimator {
     static directions = ["E", "SE", "S", "SW", "W", "NW", "N", "NE"];
     static vectors = { E: [1, 0], SE: [.7, .7], S: [0, 1], SW: [-.7, .7], W: [-1, 0], NW: [-.7, -.7], N: [0, -1], NE: [.7, -.7] };
+    static walkTextures = {};
     static displayScale = .032;
     static texture(role, direction) {
       const texture = PIXI.Texture.from("npc_" + role + "_" + direction + ".png");
       texture.baseTexture.scaleMode = PIXI.SCALE_MODES.LINEAR;
       return texture
+    }
+    static walkTexture(role, direction, frame) {
+      const key = role + ":" + direction + ":" + frame;
+      if (DarkCityNpcAnimator.walkTextures[key]) return DarkCityNpcAnimator.walkTextures[key];
+      const base = PIXI.BaseTexture.from("sprites/dark-city-" + role + "-walk-v1.png"),
+        column = DarkCityNpcAnimator.directions.indexOf(direction);
+      base.scaleMode = PIXI.SCALE_MODES.LINEAR;
+      return DarkCityNpcAnimator.walkTextures[key] = new PIXI.Texture(base, new PIXI.Rectangle(384 * column, 384 * (frame % 2), 384, 384))
     }
     constructor(host, role = "civilian", tint = 0xffffff) {
       this.host = host;
@@ -238,11 +247,12 @@ var Incremancer;
       let index = Math.round(Math.atan2(dy, dx) / (Math.PI / 4));
       return index < 0 && (index += 8), DarkCityNpcAnimator.directions[index % 8]
     }
-    play() {
-      const key = this.role + ":" + this.facing;
+    play(action = "idle") {
+      const frame = action === "walk" ? Math.floor(this.phase * 8) % 4 : 0,
+        key = this.role + ":" + this.facing + ":" + action + ":" + frame;
       this.key !== key && (
         this.key = key,
-        this.sprite.texture = DarkCityNpcAnimator.texture(this.role, this.facing),
+        this.sprite.texture = action === "walk" && frame % 2 === 0 ? DarkCityNpcAnimator.walkTexture(this.role, this.facing, frame / 2) : DarkCityNpcAnimator.texture(this.role, this.facing),
         this.outline.texture = this.sprite.texture
       )
     }
@@ -263,8 +273,8 @@ var Incremancer;
       action === "attack" && target && !target.flags?.dead &&
         (dx = target.x - host.x, dy = target.y - host.y);
       this.facing = this.direction(dx, dy);
-      this.play();
       this.phase += dt;
+      this.play(action);
       host.scale.set(1);
       const scale = DarkCityNpcAnimator.displayScale;
       this.sprite.position.set(0, 0);
@@ -276,8 +286,7 @@ var Incremancer;
       if (action === "idle") {
         this.sprite.y = .22 * Math.sin(this.phase * 2.2)
       } else if (action === "walk") {
-        this.sprite.y = -.52 * Math.abs(Math.sin(this.phase * 8.5));
-        this.sprite.rotation = .013 * Math.sin(this.phase * 8.5)
+        this.sprite.y = -.18 * Math.abs(Math.sin(this.phase * 11))
       } else if (action === "attack") {
         const progress = Math.max(0, Math.min(1, 1 - this.attackTime / .34));
         const lunge = 1.1 * Math.sin(Math.PI * progress);
@@ -521,7 +530,7 @@ var Incremancer;
             }), y = new PIXI.Sprite(f), y.visible = !1, y.alpha = 0, m.addChild(y), c.addChild(u), c.addChild(p), c.addChild(g), c.addChild(b), e.stage.addChild(c), e.stage.addChild(m), c.interactive = !0, c.interactiveChildren = !1, c.on("pointerdown", z), c.on("pointerup", I), c.on("pointerupoutside", I), c.on("pointermove", H), c.on("click", E), c.on("tap", E), document.getElementsByTagName("canvas")[0].onwheel = L, document.getElementsByTagName("canvas")[0].oncontextmenu = function(e) {
               e.preventDefault()
             }
-          }(e), e.loader.add("outerShadow", "sprites/environment/outer-shadow.jpg").add("sandstoneGround", "sprites/environment/sandstone-ground-v1.jpg").add("sandstoneBuildingFloor", "sprites/environment/sandstone-building-floor-v1.jpg").add("sandstoneBuildingWall", "sprites/environment/sandstone-building-wall-v1.jpg").add("sprites/megagraveyard.png").add("sprites/graveyard.json").add("sprites/dark-city-npcs.json?v=v1.2.3-brighter").add("sprites/dark-city-foliage.json?v=v1.2.3-brighter").add("sprites/dogs.json").add("sprites/army.json").add("sprites/zombie.json").add("sprites/golem.json").add("sprites/bonecollector.json").add("sprites/harpy.json").add("sprites/objects2.json").add("sprites/fenceposts.json").add("sprites/fortress.json").add("sprites/tank.json").add("sprites/skeleton.json").add("sprites/necromage-hd.json").add("sprites/shadow-humanoid.json?v=v1.1.4-shadow-cursor").load((function() {
+          }(e), e.loader.add("outerShadow", "sprites/environment/outer-shadow.jpg").add("sandstoneGround", "sprites/environment/sandstone-ground-v1.jpg").add("sandstoneBuildingFloor", "sprites/environment/sandstone-building-floor-v1.jpg").add("sandstoneBuildingWall", "sprites/environment/sandstone-building-wall-v1.jpg").add("civilianWalk", "sprites/dark-city-civilian-walk-v1.png").add("medicWalk", "sprites/dark-city-medic-walk-v1.png").add("enforcerWalk", "sprites/dark-city-enforcer-walk-v1.png").add("sprites/megagraveyard.png").add("sprites/graveyard.json").add("sprites/dark-city-npcs.json?v=v1.2.3-brighter").add("sprites/dark-city-foliage.json?v=v1.2.3-brighter").add("sprites/dogs.json").add("sprites/army.json").add("sprites/zombie.json").add("sprites/golem.json").add("sprites/bonecollector.json").add("sprites/harpy.json").add("sprites/objects2.json").add("sprites/fenceposts.json").add("sprites/fortress.json").add("sprites/tank.json").add("sprites/skeleton.json").add("sprites/necromage-hd.json").add("sprites/shadow-humanoid.json?v=v1.1.4-shadow-cursor").load((function() {
             const t = e.loader.resources.outerShadow.texture, s = e.loader.resources.sandstoneGround.texture;
             t.baseTexture.scaleMode = PIXI.SCALE_MODES.LINEAR, t.baseTexture.wrapMode = PIXI.WRAP_MODES.MIRRORED_REPEAT, s.baseTexture.scaleMode = PIXI.SCALE_MODES.LINEAR, s.baseTexture.wrapMode = PIXI.WRAP_MODES.REPEAT, v.app = e, N(), q = new PIXI.TilingSprite(t, D.x, D.y), q.tileScale.set(.55), e.stage.addChildAt(q, 0), x = new PIXI.TilingSprite(s), x.texture.baseTexture.mipmap = PIXI.MIPMAP_MODES.OFF, x.tileScale.set(.42), x.width = P.x, x.height = P.y, GameModel.getInstance().grassSprite = x, x.tint = GameModel.getInstance().persistentData.backgroundTint || 16777215, u.addChild(x), v.setupLevel(), setTimeout((function() {
               Z(!0)
