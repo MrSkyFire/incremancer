@@ -46,8 +46,7 @@
       }
     };
 
-    // The old XP stream rewarded any human death while the Champion was alive.
-    // Personal killing blows are now the only source of Champion progression.
+    // Personal Champion kills are now the only source of Champion levels.
     champion.addXp = function () {};
 
     var oldKillingBlow = champion.killingBlow.bind(champion);
@@ -63,11 +62,11 @@
         this.model.sendMessage("Skeleton Champion reached level " + this.persistent.level + "!", "chat-levelup");
       }
 
-      // Spell procs now belong to Champion progression rather than equipped armor.
+      // A personal kill can trigger one progression spell. Dark Orb kills count too.
       this.tryProgressionSpells();
     };
 
-    // Preserve ordinary equipment stats, but remove armor-granted spell procs.
+    // Equipment keeps its ordinary stats, but equipped spell rolls no longer cast spells.
     var oldApplyItems = champion.applyItemUpgrades.bind(champion);
     champion.applyItemUpgrades = function () {
       oldApplyItems();
@@ -75,12 +74,14 @@
     };
     champion.randomSpells = [];
 
-    // Expose progression helpers to the existing Angular UI.
     controller.skeletonMenu.killsForNextLevel = function () {
       return champion.killsForNextLevel();
     };
     controller.skeletonMenu.spellProgression = function () {
       return champion.spellProgression();
+    };
+    controller.skeletonMenu.xpPercent = function () {
+      return Math.min(100, Math.round(100 * champion.persistent.killProgress / champion.killsForNextLevel()));
     };
 
     console.log("[Incremancer] Champion kill progression installed");
