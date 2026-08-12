@@ -57,7 +57,7 @@
           <span class="timer" ng-if="spell.active || spell.onCooldown">{{spell.active ? spell.timer : spell.cooldownLeft|whole}}</span>
           <span class="tooltip" ng-if="!spell.active && !spell.onCooldown">{{spell.tooltip}}</span>
         </button>
-        <div class="skeleton" ng-if="zm.model.persistentData.allTimeHighestLevel >= 50" ng-click="zm.skeletonMenu.show()">
+        <div class="skeleton" ng-click="zm.skeletonMenu.show()">
           <div class="bg" id="skeleton"></div>
           <div class="xp"><span ng-style="{'height': zm.skeletonMenu.xpPercent() + '%'}"></span></div>
           <div class="lvl" ng-if="zm.skeleton().skeletons > 0 && zm.skeletonMenu.isAlive()">lvl {{zm.skeleton().level}}</div>
