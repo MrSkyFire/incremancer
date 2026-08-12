@@ -30,40 +30,66 @@
       death:  { frames: [6], speed: 0.12, loop: false }
     };
     var textureCache = {};
-    var atlasLoadStarted = false;
+    var necroFrames = null;
+    var sheetLoadStarted = false;
 
-    function cachedTexture(name) {
-      return PIXI && PIXI.utils && PIXI.utils.TextureCache ? PIXI.utils.TextureCache[name] : null;
+    function buildNecroFrames(baseTexture) {
+      if (necroFrames) return true;
+      if (!baseTexture || !baseTexture.valid) return false;
+
+      necroFrames = [];
+      for (var i = 0; i < 7; i++) {
+        necroFrames.push(new PIXI.Texture(
+          baseTexture,
+          new PIXI.Rectangle(i * 64, 0, 64, 64)
+        ));
+      }
+      textureCache = {};
+      console.log("[Incremancer] NecroMage sprite strip loaded and sliced");
+      return true;
     }
 
-    function loadNecroAtlas() {
-      if (cachedTexture("necro0.png") || atlasLoadStarted) return;
-      atlasLoadStarted = true;
+    function loadNecroSheet() {
+      if (necroFrames || sheetLoadStarted) return;
+      sheetLoadStarted = true;
+
       try {
-        var loader = new PIXI.Loader();
-        if (loader.onError && loader.onError.add) {
-          loader.onError.add(function (err) {
-            console.warn("[Incremancer] NecroMage atlas failed to load; keeping fallback Champion sprite", err);
+        var sheetTexture = PIXI.Texture.from("sprites/necromage.png");
+        var baseTexture = sheetTexture.baseTexture;
+
+        if (buildNecroFrames(baseTexture)) return;
+
+        if (baseTexture && baseTexture.once) {
+          baseTexture.once("loaded", function () {
+            if (!buildNecroFrames(baseTexture)) {
+              console.warn("[Incremancer] NecroMage image loaded but could not be sliced; keeping fallback Champion sprite");
+            }
+          });
+          baseTexture.once("error", function (err) {
+            console.warn("[Incremancer] NecroMage PNG failed to load; keeping fallback Champion sprite", err);
           });
         }
-        loader.add("necromage-atlas", "sprites/necromage.json").load(function () {
-          if (cachedTexture("necro0.png")) {
-            console.log("[Incremancer] NecroMage sprite atlas loaded");
-          } else {
-            console.warn("[Incremancer] NecroMage atlas finished without registered frames; keeping fallback Champion sprite");
+
+        var checks = 0;
+        var poll = setInterval(function () {
+          if (necroFrames || buildNecroFrames(baseTexture) || ++checks >= 100) {
+            clearInterval(poll);
+            if (!necroFrames) {
+              console.warn("[Incremancer] NecroMage PNG never became ready; keeping fallback Champion sprite");
+            }
           }
-        });
+        }, 100);
       } catch (err) {
-        console.warn("[Incremancer] Could not start NecroMage atlas loader; keeping fallback Champion sprite", err);
+        console.warn("[Incremancer] Could not load NecroMage PNG; keeping fallback Champion sprite", err);
       }
     }
 
     function texturesFor(state) {
       if (textureCache[state]) return textureCache[state];
+      if (!necroFrames) return null;
       var seq = sequences[state];
-      if (!cachedTexture("necro" + seq.frames[0] + ".png")) return null;
       textureCache[state] = seq.frames.map(function (i) {
-        return PIXI.Texture.from("necro" + i + ".png");
+        return necroFrames[i];
       });
       return textureCache[state];
     }
@@ -96,10 +122,9 @@
     function animate(sprite, dt, previousAttack) {
       if (!sprite) return;
 
-      /* Until the separate NecroMage atlas is ready, leave the original Champion
-       * texture, direction and scale completely untouched. This is the hard fallback. */
-      if (!cachedTexture("necro0.png")) {
-        loadNecroAtlas();
+      /* Keep the original Champion fully visible until the NecroMage PNG is ready. */
+      if (!necroFrames) {
+        loadNecroSheet();
         return;
       }
 
@@ -152,7 +177,7 @@
       };
     }
 
-    loadNecroAtlas();
+    loadNecroSheet();
 
     var portraitAttempts = 0;
     function installPortrait() {
