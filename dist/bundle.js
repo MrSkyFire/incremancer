@@ -1,4 +1,4 @@
-const FORK_VERSION = "v1.2.5";
+const FORK_VERSION = "v1.2.6";
 const FORK_VERSION_DATE = "2026-08-12";
 console.log("[Incremancer fork] " + FORK_VERSION + " (" + FORK_VERSION_DATE + ")");
 var Incremancer;
@@ -108,11 +108,17 @@ var Incremancer;
       this.hurtTime = 0;
       this.attackTime = 0;
       this.previousHealth = host.health || 0;
+      this.outline = new PIXI.Sprite(ShadowHumanoidAnimator.texture("S", "idle"));
+      this.outline.anchor.set(.5, 360 / 384);
+      this.outline.tint = 0xff2738;
+      this.outline.alpha = .9;
+      this.outline.blendMode = PIXI.BLEND_MODES.ADD;
       this.sprite = new PIXI.Sprite(ShadowHumanoidAnimator.texture("S", "idle"));
       this.sprite.anchor.set(.5, 360 / 384);
       this.sprite.scale.set(ShadowHumanoidAnimator.displayScale);
       this.sprite.roundPixels = !1;
-      host.addChildAt(this.sprite, 0)
+      host.addChildAt(this.outline, 0);
+      host.addChildAt(this.sprite, 1)
     }
     reset() {
       this.key = "";
@@ -120,6 +126,7 @@ var Incremancer;
       this.hurtTime = 0;
       this.attackTime = 0;
       this.previousHealth = this.host.health;
+      this.outline.visible = !0;
       this.sprite.visible = !0;
       this.play("idle")
     }
@@ -133,7 +140,8 @@ var Incremancer;
       this.key !== key && (
         this.key = key,
         this.state = state,
-        this.sprite.texture = ShadowHumanoidAnimator.texture(this.facing, state)
+        this.sprite.texture = ShadowHumanoidAnimator.texture(this.facing, state),
+        this.outline.texture = this.sprite.texture
       )
     }
     markAttack() { this.attackTime = .42 }
@@ -174,6 +182,9 @@ var Incremancer;
         this.sprite.x = .6 * Math.sin(this.phase * 34);
         this.sprite.rotation = .03 * Math.sin(this.phase * 34)
       }
+      this.outline.position.copyFrom(this.sprite.position);
+      this.outline.rotation = this.sprite.rotation;
+      this.outline.scale.set(this.sprite.scale.x * 1.32, this.sprite.scale.y * 1.32)
     }
   }
 
@@ -197,11 +208,17 @@ var Incremancer;
       this.attackTime = 0;
       this.deathTime = 0;
       this.previousHealth = host.health || 0;
+      this.outline = new PIXI.Sprite(DarkCityNpcAnimator.texture(role, "S"));
+      this.outline.anchor.set(.5, 360 / 384);
+      this.outline.tint = 0x328cff;
+      this.outline.alpha = .86;
+      this.outline.blendMode = PIXI.BLEND_MODES.ADD;
       this.sprite = new PIXI.Sprite(DarkCityNpcAnimator.texture(role, "S"));
       this.sprite.anchor.set(.5, 360 / 384);
       this.sprite.scale.set(DarkCityNpcAnimator.displayScale);
       this.sprite.roundPixels = !1;
-      host.addChildAt(this.sprite, 0)
+      host.addChildAt(this.outline, 0);
+      host.addChildAt(this.sprite, 1)
     }
     reset(role = this.role, tint = 0xffffff) {
       this.role = role;
@@ -211,6 +228,7 @@ var Incremancer;
       this.attackTime = 0;
       this.deathTime = 0;
       this.previousHealth = this.host.health;
+      this.outline.visible = !0;
       this.sprite.visible = !0;
       this.play()
     }
@@ -223,7 +241,8 @@ var Incremancer;
       const key = this.role + ":" + this.facing;
       this.key !== key && (
         this.key = key,
-        this.sprite.texture = DarkCityNpcAnimator.texture(this.role, this.facing)
+        this.sprite.texture = DarkCityNpcAnimator.texture(this.role, this.facing),
+        this.outline.texture = this.sprite.texture
       )
     }
     markAttack() { this.attackTime = .34 }
@@ -274,6 +293,9 @@ var Incremancer;
         this.sprite.y = 1.6 * progress;
         this.sprite.scale.set(scale * (1 - .08 * progress), scale * (1 - .28 * progress))
       }
+      this.outline.position.copyFrom(this.sprite.position);
+      this.outline.rotation = this.sprite.rotation;
+      this.outline.scale.set(this.sprite.scale.x * 1.3, this.sprite.scale.y * 1.3)
     }
   }
 
@@ -3662,7 +3684,7 @@ var Incremancer;
     }
     createPoliceDog(e, t) {
       let s;
-      this.discardedPolice.length > 0 ? (s = this.discardedPolice.pop(), s.alpha = 1, s.textures = this.dogTexture) : s = new PoliceUnit(this.dogTexture), s.reset(), s.npcAnimator && (s.npcAnimator.sprite.visible = !1), s.owner = e, s.flags.dog = !0, s.flags.dead = !1, s.flags.infected = !1, s.flags.burning = !1, s.burnDamage = 0, s.plagueDamage = 0, s.plagueTicks = 0, s.deadTexture = this.deadDogTexture, s.animationSpeed = .15, s.anchor.set(.5, 1), s.position.set(e.position.x + 3, e.position.y), s.zIndex = s.position.y, s.xSpeed = 0, s.ySpeed = 0, s.speedMod = 1, s.lastKnownBuilding = null, s.timer.plagueTick = Math.random() * this.humans.plagueTickTimer, s.maxSpeed = this.maxRunSpeed, s.visionDistance = this.visionDistance, s.visible = !0, s.maxHealth = s.health = t, s.timer.scan = Math.random() * this.humans.scanTime, s.target = e, s.zombieTarget = null, s.policeState = ue.following, s.followTimer = 0, s.timer.attack = this.attackSpeed, s.scale.set(Math.random() > .5 ? this.dogScaling : -1 * this.dogScaling, this.dogScaling), this.police.push(s), g.addChild(s)
+      this.discardedPolice.length > 0 ? (s = this.discardedPolice.pop(), s.alpha = 1, s.textures = this.dogTexture) : s = new PoliceUnit(this.dogTexture), s.reset(), s.npcAnimator && (s.npcAnimator.sprite.visible = !1, s.npcAnimator.outline.visible = !1), s.owner = e, s.flags.dog = !0, s.flags.dead = !1, s.flags.infected = !1, s.flags.burning = !1, s.burnDamage = 0, s.plagueDamage = 0, s.plagueTicks = 0, s.deadTexture = this.deadDogTexture, s.animationSpeed = .15, s.anchor.set(.5, 1), s.position.set(e.position.x + 3, e.position.y), s.zIndex = s.position.y, s.xSpeed = 0, s.ySpeed = 0, s.speedMod = 1, s.lastKnownBuilding = null, s.timer.plagueTick = Math.random() * this.humans.plagueTickTimer, s.maxSpeed = this.maxRunSpeed, s.visionDistance = this.visionDistance, s.visible = !0, s.maxHealth = s.health = t, s.timer.scan = Math.random() * this.humans.scanTime, s.target = e, s.zombieTarget = null, s.policeState = ue.following, s.followTimer = 0, s.timer.attack = this.attackSpeed, s.scale.set(Math.random() > .5 ? this.dogScaling : -1 * this.dogScaling, this.dogScaling), this.police.push(s), g.addChild(s)
     }
     update(e, t) {
       let s = 0;
@@ -4097,9 +4119,9 @@ var Incremancer;
       this.discardedZombies.length > 0 ? a = this.discardedZombies.pop() : a = new Ee(s ? this.dogTexture : [PIXI.Texture.EMPTY]);
       a.zombie = !0, a.mod = 1, a.scaleMod = 1, this.super && (a.mod = 10, a.scaleMod = 1.5), a.flags = new Fe, a.flags.dog = s, a.flags.super = this.super, a.textureId = i, a.burnDamage = 0, a.lastKnownBuilding = !1, a.alpha = 1, a.tint = 0xffffff, a.animationSpeed = .15, a.anchor.set(35 / 80, 1), a.bloodbornTimer = this.bloodborn, a.position.set(e, t), a.target = null, a.zIndex = a.position.y, a.visible = !0, a.maxHealth = a.health = this.model.zombieHealth * a.mod, a.regenTimer = 5, a.state = be.lookingForTarget;
       if (s) {
-        a.textures = this.dogTexture, a.deadTexture = this.deadDogTexture, a.shadowAnimator && (a.shadowAnimator.sprite.visible = !1)
+        a.textures = this.dogTexture, a.deadTexture = this.deadDogTexture, a.shadowAnimator && (a.shadowAnimator.sprite.visible = !1, a.shadowAnimator.outline.visible = !1)
       } else {
-        a.textures = [PIXI.Texture.EMPTY], a.deadTexture = [PIXI.Texture.EMPTY], a.shadowAnimator || (a.shadowAnimator = new ShadowHumanoidAnimator(a)), a.shadowAnimator.sprite.visible = !0
+        a.textures = [PIXI.Texture.EMPTY], a.deadTexture = [PIXI.Texture.EMPTY], a.shadowAnimator || (a.shadowAnimator = new ShadowHumanoidAnimator(a)), a.shadowAnimator.sprite.visible = !0, a.shadowAnimator.outline.visible = !0
       }
       (forceProdigy || this.model.zombieTalents && Math.random() < .01) && (
         a.flags.talented = !0, a.tint = 0xffaa00,
