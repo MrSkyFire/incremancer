@@ -532,7 +532,7 @@ var Incremancer;
             }), y = new PIXI.Sprite(f), y.visible = !1, y.alpha = 0, m.addChild(y), c.addChild(u), c.addChild(p), c.addChild(g), c.addChild(b), e.stage.addChild(c), e.stage.addChild(m), c.interactive = !0, c.interactiveChildren = !1, c.on("pointerdown", z), c.on("pointerup", I), c.on("pointerupoutside", I), c.on("pointermove", H), c.on("click", E), c.on("tap", E), document.getElementsByTagName("canvas")[0].onwheel = L, document.getElementsByTagName("canvas")[0].oncontextmenu = function(e) {
               e.preventDefault()
             }
-          }(e), e.loader.add("outerShadow", "sprites/environment/outer-shadow.jpg").add("sandstoneGround", "sprites/environment/sandstone-ground-v1.jpg").add("sandstoneBuildingFloor", "sprites/environment/sandstone-building-floor-v1.jpg").add("sandstoneBuildingWall", "sprites/environment/sandstone-building-wall-v1.jpg").add("civilianWalk", "sprites/dark-city-civilian-walk-v1.png").add("medicWalk", "sprites/dark-city-medic-walk-v1.png").add("enforcerWalk", "sprites/dark-city-enforcer-walk-v1.png").add("droppedBoneHd", "sprites/dropped-bone-v1.png").add("graveyardHdStage1", "sprites/graveyard-hd-stage1-v1.png").add("graveyardHdStage2", "sprites/graveyard-hd-stage2-v1.png").add("graveyardHdStage3", "sprites/graveyard-hd-stage3-v1.png").add("graveyardHdStage4", "sprites/graveyard-hd-stage4-v1.png").add("graveyardHdStage5", "sprites/graveyard-hd-stage5-v1.png").add("sprites/megagraveyard.png").add("sprites/graveyard.json").add("sprites/dark-city-npcs.json?v=v1.2.3-brighter").add("sprites/dark-city-foliage.json?v=v1.2.3-brighter").add("sprites/dogs.json").add("sprites/army.json").add("sprites/zombie.json").add("sprites/golem.json").add("sprites/bonecollector-hd-v1.json?v=v0.1.0-bone-collector-v2").add("sprites/harpy.json").add("sprites/objects2.json").add("sprites/fenceposts.json").add("sprites/fortress.json").add("sprites/tank.json").add("sprites/skeleton.json").add("sprites/necromage-hd.json").add("sprites/shadow-humanoid.json?v=v1.1.4-shadow-cursor").load((function() {
+          }(e), e.loader.add("outerShadow", "sprites/environment/outer-shadow.jpg").add("sandstoneGround", "sprites/environment/sandstone-ground-v1.jpg").add("sandstoneBuildingFloor", "sprites/environment/sandstone-building-floor-v1.jpg").add("sandstoneBuildingWall", "sprites/environment/sandstone-building-wall-v1.jpg").add("civilianWalk", "sprites/dark-city-civilian-walk-v1.png").add("medicWalk", "sprites/dark-city-medic-walk-v1.png").add("enforcerWalk", "sprites/dark-city-enforcer-walk-v1.png").add("droppedBoneHd", "sprites/dropped-bone-v1.png").add("graveyardHdStage1", "sprites/graveyard-hd-stage1-v1.png").add("graveyardHdStage2", "sprites/graveyard-hd-stage2-v1.png").add("graveyardHdStage3", "sprites/graveyard-hd-stage3-v1.png").add("graveyardHdStage4", "sprites/graveyard-hd-stage4-v1.png").add("graveyardHdStage5", "sprites/graveyard-hd-stage5-v1.png").add("perimeterFencePostHd", "sprites/perimeter-fence-post-v1.png").add("sprites/megagraveyard.png").add("sprites/graveyard.json").add("sprites/dark-city-npcs.json?v=v1.2.3-brighter").add("sprites/dark-city-foliage.json?v=v1.2.3-brighter").add("sprites/dogs.json").add("sprites/army.json").add("sprites/zombie.json").add("sprites/golem.json").add("sprites/bonecollector-hd-v1.json?v=v0.1.0-bone-collector-v2").add("sprites/harpy.json").add("sprites/objects2.json").add("sprites/fortress.json").add("sprites/tank.json").add("sprites/skeleton.json").add("sprites/necromage-hd.json").add("sprites/shadow-humanoid.json?v=v1.1.4-shadow-cursor").load((function() {
             const t = e.loader.resources.outerShadow.texture, s = e.loader.resources.sandstoneGround.texture;
             t.baseTexture.scaleMode = PIXI.SCALE_MODES.LINEAR, t.baseTexture.wrapMode = PIXI.WRAP_MODES.MIRRORED_REPEAT, s.baseTexture.scaleMode = PIXI.SCALE_MODES.LINEAR, s.baseTexture.wrapMode = PIXI.WRAP_MODES.REPEAT, v.app = e, N(), q = new PIXI.TilingSprite(t, D.x, D.y), q.tileScale.set(.55), e.stage.addChildAt(q, 0), x = new PIXI.TilingSprite(s), x.texture.baseTexture.mipmap = PIXI.MIPMAP_MODES.OFF, x.tileScale.set(.42), x.width = P.x, x.height = P.y, GameModel.getInstance().grassSprite = x, x.tint = GameModel.getInstance().persistentData.backgroundTint || 16777215, u.addChild(x), v.setupLevel(), setTimeout((function() {
               Z(!0)
@@ -5184,7 +5184,7 @@ var Incremancer;
           graveyard: !0,
           x: 0,
           y: 0
-        }, this.healthBar = null, this.fence = null, this.fencePosts = [], Graveyard.instance) return Graveyard.instance;
+        }, this.healthBar = null, this.fence = null, this.fenceRails = null, this.fencePosts = [], Graveyard.instance) return Graveyard.instance;
       Graveyard.instance = this
     }
     initialize() {
@@ -5220,24 +5220,34 @@ var Incremancer;
       this.sprite.width = t.width, this.sprite.height = t.height, this.sprite.anchor.set(.5, t.anchorY), this.sprite.visible = !1, this.sprite.x = s.x, this.sprite.y = s.y, this.sprite.zIndex = s.y + 2, g.addChild(this.sprite), this.zmMap.graveyardCollision = !1
     }
     drawFence() {
-      if (this.fence || (this.fence = new PIXI.Container, u.addChild(this.fence)), this.fenceRadius = this.gameModel.fenceRadius, !this.fenceTextures) {
-        this.fenceTextures = [];
-        for (let e = 0; e < 4; e++) this.fenceTextures.push(PIXI.Texture.from("fencepost" + (e + 1) + ".png"))
+      if (!this.fence) {
+        this.fence = new PIXI.Container;
+        this.fence.sortableChildren = !0;
+        this.fenceRails = new PIXI.Graphics;
+        this.fenceRails.zIndex = -1e4;
+        this.fence.addChild(this.fenceRails), u.addChild(this.fence)
       }
-      this.fencePosts.forEach((e => e.visible = !1)), this.fence.cacheAsBitmap = !1;
-      const e = Math.round(.4 * this.fenceRadius),
-        t = 2 * Math.PI / e;
-      for (let r = 0; r < e; r++) {
-        let e;
-        this.fencePosts[r] ? (e = this.fencePosts[r], e.visible = !0) : (e = new PIXI.Sprite(a(this.fenceTextures, Math.random())), this.fencePosts.push(e), this.fence.addChild(e)), e.anchor.set(.5, 1), e.scale.x = Math.random() > .5 ? 1 : -1;
-        const n = 10 * Math.random() - 5,
-          o = (0, s = this.fenceRadius + n, i = t * r, {
-            x: 0 * Math.cos(i) - s * Math.sin(i),
-            y: 0 * Math.sin(i) + s * Math.cos(i)
-          });
-        e.position.set(o.x, o.y)
+      if (this.fenceRadius = this.gameModel.fenceRadius, !this.fenceTexture) {
+        this.fenceTexture = v.app.loader.resources.perimeterFencePostHd.texture;
+        this.fenceTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.LINEAR
       }
-      var s, i;
+      this.fencePosts.forEach((e => e.visible = !1)), this.fence.cacheAsBitmap = !1, this.fenceRails.clear();
+      const e = this.fenceRadius,
+        t = Math.max(16, Math.round(.34 * e)),
+        s = 2 * Math.PI / t;
+      this.fenceRails.lineStyle(5.2, 0x08070b, .82), this.fenceRails.drawCircle(0, 0, e);
+      this.fenceRails.lineStyle(2.6, 0x302b30, 1), this.fenceRails.drawCircle(0, 0, e);
+      this.fenceRails.lineStyle(1.15, 0xb58a55, .9), this.fenceRails.drawCircle(0, 0, e - .75);
+      this.fenceRails.lineStyle(.65, 0x9a4cc4, .62), this.fenceRails.drawCircle(0, 0, e - 3.1);
+      const i = [0xffffff, 0xe8d9c4, 0xcab69a];
+      for (let r = 0; r < t; r++) {
+        let t;
+        this.fencePosts[r] ? (t = this.fencePosts[r], t.visible = !0) : (t = new PIXI.Sprite(this.fenceTexture), this.fencePosts.push(t), this.fence.addChild(t)), t.anchor.set(.5, .94), t.width = 13, t.height = 20, t.tint = i[r % i.length];
+        const n = s * r,
+          o = e * Math.cos(n),
+          a = e * Math.sin(n);
+        t.position.set(o, a), t.zIndex = a
+      }
       this.fence.cacheAsBitmap = !0;
       const r = this.zmMap.graveYardLocation;
       this.fence.x = r.x, this.fence.y = r.y
