@@ -17,6 +17,17 @@
     champion._killProgressionInstalled = true;
 
     var p = champion.persistent;
+
+    // This fork is built around the Champion, so recruit him immediately on every save.
+    // Existing Champion saves are left intact; fresh/older saves with no Champion are promoted to one.
+    if (!p.skeletons || p.skeletons < 1) {
+      p.skeletons = 1;
+      p.xpRate = Math.max(1, p.xpRate || 0);
+      champion.model.sendMessage("Skeleton Champion joins the fight!", "chat-levelup");
+      champion.upgrades.applyUpgrades();
+      champion.model.saveData();
+    }
+
     p.killProgress = p.killProgress || 0;
     p.totalKills = p.totalKills || 0;
 
@@ -83,6 +94,42 @@
     controller.skeletonMenu.xpPercent = function () {
       return Math.min(100, Math.round(100 * champion.persistent.killProgress / champion.killsForNextLevel()));
     };
+
+    // The original UI hides the Champion button until allTimeHighestLevel >= 50.
+    // Add our own immediately instead of faking level-50 progression and unlocking unrelated systems.
+    function ensureChampionButton() {
+      var spells = document.querySelector(".resources .spells");
+      if (!spells) return;
+      var original = spells.querySelector(".skeleton:not([data-early-champion])");
+      var early = spells.querySelector("[data-early-champion]");
+      if (original) {
+        if (early) early.remove();
+        return;
+      }
+      if (!early) {
+        early = document.createElement("div");
+        early.className = "skeleton";
+        early.setAttribute("data-early-champion", "1");
+        early.innerHTML = '<div class="bg" id="skeleton-early"></div><div class="xp"><span></span></div><div class="lvl"></div>';
+        early.addEventListener("click", function () { controller.skeletonMenu.show(); });
+        spells.appendChild(early);
+      }
+      var bar = early.querySelector(".xp span");
+      var lvl = early.querySelector(".lvl");
+      if (bar) bar.style.height = controller.skeletonMenu.xpPercent() + "%";
+      if (lvl) {
+        if (controller.skeletonMenu.isAlive()) {
+          lvl.className = "lvl";
+          lvl.textContent = "lvl " + champion.persistent.level;
+        } else {
+          lvl.className = "lvl dead";
+          lvl.textContent = "DEAD: " + controller.skeletonMenu.timer();
+        }
+      }
+    }
+
+    ensureChampionButton();
+    setInterval(ensureChampionButton, 250);
 
     console.log("[Incremancer] Champion kill progression installed");
   }
