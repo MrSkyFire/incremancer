@@ -124,7 +124,7 @@
   "meta": {
     "app": "Codex dark city foliage atlas builder",
     "version": "1.0",
-    "image": "dark-city-foliage.png",
+    "image": "dark-city-foliage.png?v=v1.2.3-brighter",
     "format": "RGBA8888",
     "size": {
       "w": 2304,

@@ -484,7 +484,7 @@
   "meta": {
     "app": "Codex dark city NPC atlas builder",
     "version": "1.0",
-    "image": "dark-city-npcs.png",
+    "image": "dark-city-npcs.png?v=v1.2.3-brighter",
     "format": "RGBA8888",
     "size": {
       "w": 3072,
