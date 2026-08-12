@@ -19,7 +19,7 @@
     return null;
   }
 
-  function install(controller) {
+  function install(controller, $rootScope) {
     var champion = controller.model.skeleton;
     if (!champion || champion._killProgressionInstalled) return;
     champion._killProgressionInstalled = true;
@@ -45,9 +45,9 @@
     champion.spellProgression = function () {
       var level = this.persistent.level;
       return [
-        { id: 1, name: "Time Warp", unlocked: level >= 5, chance: Math.min(0.50, 0.01 + level * 0.005) },
-        { id: 2, name: "Energy Charge", unlocked: level >= 10, chance: Math.min(0.45, 0.005 + level * 0.0045) },
-        { id: 5, name: "Gigazombies", unlocked: level >= 15, chance: Math.min(0.35, 0.005 + level * 0.003) }
+        { id: 1, name: "Time Warp", unlockLevel: 5, unlocked: level >= 5, chance: Math.min(0.50, 0.01 + level * 0.005), cap: 0.50 },
+        { id: 2, name: "Energy Charge", unlockLevel: 10, unlocked: level >= 10, chance: Math.min(0.45, 0.005 + level * 0.0045), cap: 0.45 },
+        { id: 5, name: "Gigazombies", unlockLevel: 15, unlocked: level >= 15, chance: Math.min(0.35, 0.005 + level * 0.003), cap: 0.35 }
       ];
     };
 
@@ -101,40 +101,63 @@
       return Math.min(100, Math.round(100 * champion.persistent.killProgress / champion.killsForNextLevel()));
     };
 
-    // The original UI hides the Champion button until level 50. Add an early-game copy.
-    function ensureChampionButton() {
-      var spells = document.querySelector(".resources .spells");
-      if (!spells) return;
-      var original = spells.querySelector(".skeleton:not([data-early-champion])");
-      var early = spells.querySelector("[data-early-champion]");
-      if (original) {
-        if (early) early.remove();
+    // Add a visible Progression tab to the Champion menu without rebuilding the bundled Angular template.
+    function ensureProgressionUI() {
+      var hold = document.getElementById("champ-hold");
+      if (!hold) return;
+
+      var title = hold.querySelector(".shop-title h2");
+      if (!title) return;
+
+      var button = title.querySelector("[data-champion-progression-tab]");
+      if (!button) {
+        button = document.createElement("button");
+        button.setAttribute("data-champion-progression-tab", "1");
+        button.textContent = "Progression";
+        button.addEventListener("click", function () {
+          controller.skeletonMenu.tab = "progression";
+          $rootScope.$applyAsync();
+        });
+        title.appendChild(button);
+      }
+      button.className = controller.skeletonMenu.tab === "progression" ? "active" : "";
+
+      var panel = hold.querySelector("[data-champion-progression-panel]");
+      if (!panel) {
+        panel = document.createElement("div");
+        panel.setAttribute("data-champion-progression-panel", "1");
+        panel.className = "ranges";
+        hold.appendChild(panel);
+      }
+
+      if (controller.skeletonMenu.tab !== "progression") {
+        panel.style.display = "none";
         return;
       }
-      if (!early) {
-        early = document.createElement("div");
-        early.className = "skeleton";
-        early.setAttribute("data-early-champion", "1");
-        early.innerHTML = '<div class="bg" id="skeleton-early"></div><div class="xp"><span></span></div><div class="lvl"></div>';
-        early.addEventListener("click", function () { controller.skeletonMenu.show(); });
-        spells.appendChild(early);
-      }
-      var bar = early.querySelector(".xp span");
-      var lvl = early.querySelector(".lvl");
-      if (bar) bar.style.height = controller.skeletonMenu.xpPercent() + "%";
-      if (lvl) {
-        if (controller.skeletonMenu.isAlive()) {
-          lvl.className = "lvl";
-          lvl.textContent = "lvl " + champion.persistent.level;
+
+      panel.style.display = "block";
+      var needed = champion.killsForNextLevel();
+      var progress = champion.persistent.killProgress || 0;
+      var total = champion.persistent.totalKills || 0;
+      var spells = champion.spellProgression();
+      var html = "<h3>Champion Progression</h3>";
+      html += "<p><strong>Level " + champion.persistent.level + "</strong><br>" + progress + " / " + needed + " personal kills to next level<br>Lifetime Champion kills: " + total + "</p>";
+      html += "<p>Only kills landed by the Skeleton Champion count toward levels. Dark Orb finishing blows count too.</p>";
+      html += "<h4>Spell Proc Progression</h4><ul>";
+      for (var i = 0; i < spells.length; i++) {
+        var s = spells[i];
+        if (s.unlocked) {
+          html += "<li><strong>" + s.name + "</strong>: " + (s.chance * 100).toFixed(1) + "% proc chance (cap " + (s.cap * 100).toFixed(0) + "%)</li>";
         } else {
-          lvl.className = "lvl dead";
-          lvl.textContent = "DEAD: " + controller.skeletonMenu.timer();
+          html += "<li><strong>" + s.name + "</strong>: unlocks at Champion level " + s.unlockLevel + "</li>";
         }
       }
+      html += "</ul><p>Armor no longer grants automatic spell procs; these chances now come from Champion level.</p>";
+      panel.innerHTML = html;
     }
 
-    ensureChampionButton();
-    setInterval(ensureChampionButton, 250);
+    ensureProgressionUI();
+    setInterval(ensureProgressionUI, 250);
     console.log("[Incremancer] Champion kill progression installed");
   }
 
@@ -145,7 +168,7 @@
     function boot() {
       var controller = findController($rootScope);
       if (controller) {
-        install(controller);
+        install(controller, $rootScope);
         return;
       }
       if (++attempts < 80) $timeout(boot, 100, false);
