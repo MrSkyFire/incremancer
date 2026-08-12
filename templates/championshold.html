@@ -23,6 +23,14 @@
       <button ng-click="zm.skeletonMenu.show()">Reject the offer</button>
     </div>
     <div ng-if="zm.skeleton().skeletons > 0">
+      <div class="necro-stance">
+        <h4>Stance: {{zm.skeletonMenu.isChanneling() ? 'Channel Energy' : 'Combat'}}</h4>
+        <button ng-click="zm.skeletonMenu.toggleChanneling()" class="{{zm.skeletonMenu.isChanneling() ? 'active' : ''}}">
+          {{zm.skeletonMenu.isChanneling() ? 'Return to Combat' : 'Channel at Spawn'}}
+        </button>
+        <p ng-if="!zm.skeletonMenu.isChanneling()">The NecroMage hunts and attacks humans normally.</p>
+        <p ng-if="zm.skeletonMenu.isChanneling()">The NecroMage returns to the graveyard and generates +{{zm.skeletonMenu.channelEnergyRate()}} energy per second while alive instead of attacking.</p>
+      </div>
       <div class="inventory">
         <div class="gear-sets">
           Gear Sets ({{zm.skeletonMenu.gearSets().length}}/{{zm.skeletonMenu.maxGearSet}})

@@ -1,5 +1,5 @@
-const FORK_VERSION = "v1.1.0";
-const FORK_VERSION_DATE = "2026-02-16";
+const FORK_VERSION = "v1.2.5";
+const FORK_VERSION_DATE = "2026-08-12";
 console.log("[Incremancer fork] " + FORK_VERSION + " (" + FORK_VERSION_DATE + ")");
 var Incremancer;
 (() => {
@@ -1657,7 +1657,7 @@ var Incremancer;
         harpyCost += skeletonHarpies * 4;
       }
       if (this.strapemRank > 0) harpyCost *= Math.pow(10, this.strapemRank);
-      return this.energySpellMultiplier * this.energyRate - (this.persistentData.boneCollectors + harpyCost + (this.persistentData.spiders || 0) * 10)
+      return this.energySpellMultiplier * (this.energyRate + this.skeleton.getChannelEnergyBonus()) - (this.persistentData.boneCollectors + harpyCost + (this.persistentData.spiders || 0) * 10)
     }
     getHarpyCostPerUnit() {
       let cost = 1;
@@ -1675,7 +1675,7 @@ var Incremancer;
       return harpyCost;
     }
     getEnergyBudgetForHarpies() {
-      return this.energySpellMultiplier * this.energyRate - (this.persistentData.boneCollectors + (this.persistentData.spiders || 0) * 10);
+      return this.energySpellMultiplier * (this.energyRate + this.skeleton.getChannelEnergyBonus()) - (this.persistentData.boneCollectors + (this.persistentData.spiders || 0) * 10);
     }
     computeMaxHarpies() {
       const budget = this.getEnergyBudgetForHarpies();
@@ -1912,7 +1912,7 @@ var Incremancer;
         damageReduction: 1,
         healthRegen: 0,
         damageReflection: 0
-      }, this.bossFailCount = 0, this.bossRushMode = !1, this.bossRushOffered = !1, this.boneCollectors.update(.1), this.partFactory.generatorsApplied = [], this.creatureFactory.updateAutoBuild(), this.creatureFactory.resetLevels(), this.skeleton.persistent.talentReset = !0, this.skeleton.persistent.talentPoints = 0, this.skeleton.persistent.level = 1, this.skeleton.persistent.items = [], this.skeleton.persistent.gearSetEquipped = -1, this.skeleton.persistent.gearSets = [], this.skeleton.persistent.currItemId = 0, this.skeleton.persistent.xp = 0, this.skeleton.persistent.xpRate = 0, this.skeleton.persistent.skeletons = 0, this.skeleton.talents = [], this.persistentData.skeletonTalents = [], this.level = 1, this.currentState = this.states.prestiged, function(){const spells = new SpellSystem; spells.spells.forEach(s => { if (s.active) { s.active = !1; s.end(); } })}.call(this), this.setupLevel(), this.saveData();
+      }, this.bossFailCount = 0, this.bossRushMode = !1, this.bossRushOffered = !1, this.boneCollectors.update(.1), this.partFactory.generatorsApplied = [], this.creatureFactory.updateAutoBuild(), this.creatureFactory.resetLevels(), this.skeleton.persistent.talentReset = !0, this.skeleton.persistent.talentPoints = 0, this.skeleton.persistent.level = 1, this.skeleton.persistent.items = [], this.skeleton.persistent.gearSetEquipped = -1, this.skeleton.persistent.gearSets = [], this.skeleton.persistent.currItemId = 0, this.skeleton.persistent.xp = 0, this.skeleton.persistent.xpRate = 0, this.skeleton.persistent.skeletons = 0, this.skeleton.persistent.channelEnergy = !1, this.skeleton.talents = [], this.persistentData.skeletonTalents = [], this.level = 1, this.currentState = this.states.prestiged, function(){const spells = new SpellSystem; spells.spells.forEach(s => { if (s.active) { s.active = !1; s.end(); } })}.call(this), this.setupLevel(), this.saveData();
     }
     //o
     saveData() {
@@ -1975,7 +1975,8 @@ var Incremancer;
           gearSetEquipped: -1,
           gearSets: [],
           currItemId: 0,
-          talentReset: !1
+          talentReset: !1,
+          channelEnergy: !1
         }, null !== localStorage.getItem(this.skeleton.talentsStorageName) ? this.skeleton.talents = JSON.parse(localStorage.getItem(this.skeleton.talentsStorageName)) : this.skeleton.talents = [], this.migrateSave(), this.updatePersistentData(), this.calcOfflineProgress());
       } catch (e) {
         console.log(e)
@@ -4370,7 +4371,8 @@ var Incremancer;
           gearSetEquipped: -1,
           gearSets: [],
           currItemId: 0,
-          talentReset: !1
+          talentReset: !1,
+          channelEnergy: !1
         }, this.talents = [], this.talentPoints = 0, this.killingBlowParts = 0, this.lootChanceMod = 1, this.increaseChance = 0, this.darkorb = 0, this.darkorbTimer = 0, this.boneshield = 0, this.aliveZombies = [], this.graveyardAttackers = [], this.lootPositions = {
           helmet: {
             id: 1,
@@ -4508,7 +4510,7 @@ var Incremancer;
     }
     spawnCreature(legacyVisual = !1) {
       let e, legacyIndex = legacyVisual ? this.discardedSprites.findIndex((e => !e.necroAnimator)) : -1;
-      legacyIndex >= 0 ? (e = this.discardedSprites.splice(legacyIndex, 1)[0], e.textures = this.textures.down) : (e = new Le(legacyVisual ? this.textures.down : [PIXI.Texture.EMPTY]), e.addChild(e.boneshieldContainer), e.boneshieldContainer.position.set(0, -16), e.boneshieldContainer.radius = 16), e.tint = 15658734, e.netSkeleton = legacyVisual, e.immuneToBurns = !1, e.bulletReflect = 0, e.zombie = !0, e.textureSet = this.textures, e.deadTexture = legacyVisual ? this.textures.dead : [PIXI.Texture.EMPTY], e.currentDirection = this.directions.down, e.flags = new K, e.burnDamage = 0, e.lastKnownBuilding = !1, e.alpha = 1, e.animationSpeed = .15, e.anchor.set(8.5 / 16, 1), e.position.set(this.graveyard.sprite.x, this.graveyard.sprite.y + (this.graveyard.level > 2 ? 8 : 0)), e.target = null, e.zIndex = e.position.y, e.visible = !0, e.maxHealth = e.health = 10 * this.model.zombieHealth, e.attackDamage = 10 * this.model.zombieDamage, e.regenTimer = 5, e.state = be.lookingForTarget, e.scaling = this.scaling, e.scale.set(e.scaling, e.scaling), e.timer.ability = 4 * Math.random(), e.timer.attack = 0, e.timer.scan = 0, e.timer.burnTick = this.burnTickTimer, e.timer.smoke = this.smokeTimer, e.xSpeed = 0, e.ySpeed = 0, e.speedMultiplier = 1, e.maxSpeed = this.moveSpeed, legacyVisual ? e.play() : (e.stop(), e.necroAnimator = new NecroMageAnimator(e)), e.zombieId = this.currId++, this.skeletons.push(e), g.addChild(e), this.smoke.newZombieSpawnCloud(e.x, e.y - 2);
+      legacyIndex >= 0 ? (e = this.discardedSprites.splice(legacyIndex, 1)[0], e.textures = this.textures.down) : (e = new Le(legacyVisual ? this.textures.down : [PIXI.Texture.EMPTY]), e.addChild(e.boneshieldContainer), e.boneshieldContainer.position.set(0, -16), e.boneshieldContainer.radius = 16), e.tint = 15658734, e.netSkeleton = legacyVisual, e.channeling = !1, e.immuneToBurns = !1, e.bulletReflect = 0, e.zombie = !0, e.textureSet = this.textures, e.deadTexture = legacyVisual ? this.textures.dead : [PIXI.Texture.EMPTY], e.currentDirection = this.directions.down, e.flags = new K, e.burnDamage = 0, e.lastKnownBuilding = !1, e.alpha = 1, e.animationSpeed = .15, e.anchor.set(8.5 / 16, 1), e.position.set(this.graveyard.sprite.x, this.graveyard.sprite.y + (this.graveyard.level > 2 ? 8 : 0)), e.target = null, e.zIndex = e.position.y, e.visible = !0, e.maxHealth = e.health = 10 * this.model.zombieHealth, e.attackDamage = 10 * this.model.zombieDamage, e.regenTimer = 5, e.state = be.lookingForTarget, e.scaling = this.scaling, e.scale.set(e.scaling, e.scaling), e.timer.ability = 4 * Math.random(), e.timer.attack = 0, e.timer.scan = 0, e.timer.burnTick = this.burnTickTimer, e.timer.smoke = this.smokeTimer, e.xSpeed = 0, e.ySpeed = 0, e.speedMultiplier = 1, e.maxSpeed = this.moveSpeed, legacyVisual ? e.play() : (e.stop(), e.necroAnimator = new NecroMageAnimator(e)), e.zombieId = this.currId++, this.skeletons.push(e), g.addChild(e), this.smoke.newZombieSpawnCloud(e.x, e.y - 2);
       return e
     }
     spawnNetSkeleton(costScale, x, y) {
@@ -4521,6 +4523,22 @@ var Incremancer;
     skeletonTimer() {
       return this.aliveSkeletons.filter(s => !s.netSkeleton).length < this.persistent.skeletons ? this.spawnTimer : 0
     }
+    potentialChannelEnergyRate() {
+      return Math.round((1 + .1 * Math.max(1, this.persistent.level || 1)) * 100) / 100
+    }
+    getChannelEnergyBonus() {
+      if (!this.persistent.channelEnergy) return 0;
+      return this.skeletons.some((e => !e.netSkeleton && e.channeling && e.visible && !e.flags.dead)) ? this.potentialChannelEnergyRate() : 0
+    }
+    setChannelEnergy(enabled) {
+      this.persistent.channelEnergy = !!enabled;
+      for (let t = 0; t < this.skeletons.length; t++) {
+        const e = this.skeletons[t];
+        if (e.netSkeleton || e.flags.dead) continue;
+        e.channeling = !1, e.target = null, e.targetVector = null, e.state = be.lookingForTarget, e.timer.scan = 0, e.timer.target = 0, e.xSpeed = 0, e.ySpeed = 0
+      }
+      this.model.saveData()
+    }
     update(e) {
       this.aliveHumans = this.humans.aliveHumans, this.graveyardAttackers = this.humans.graveyardAttackers, this.aliveZombies = this.zombies.aliveZombies, this.aliveSkeletons = [], this.spellTimer -= e;
       for (let t = 0; t < this.skeletons.length; t++) this.skeletons[t].visible && (this.updateCreature(this.skeletons[t], e), this.skeletons[t].flags.dead || (this.aliveZombies.push(this.skeletons[t]), this.aliveSkeletons.push(this.skeletons[t])));
@@ -4531,10 +4549,13 @@ var Incremancer;
     }
     updateCreature(e, t) {
       if (e.flags.dead) {
+        e.channeling = !1;
         e.necroAnimator && e.necroAnimator.update(t);
         if (!e.visible) return;
         return e.alpha -= this.fadeSpeed * t, void(e.alpha < 0 && (e.visible = !1, g.removeChild(e)))
       }
+      if (!e.netSkeleton && this.persistent.channelEnergy) return void this.updateChannelingCreature(e, t);
+      e.channeling = !1;
       switch (this.boneshield > 0 && e.boneshield < this.boneshield && (e.boneshieldTimer -= t, e.boneshieldTimer < 0 && (e.boneshieldTimer = 10 / this.boneshield, e.boneshield++)), this.boneshield ? (e.boneshieldContainer.visible = !0, e.boneshieldContainer.update(e.boneshield), e.boneshieldContainer.rotation += t) : e.boneshieldContainer.visible = !1, this.darkorb > 0 && (this.darkorbTimer -= t, this.darkorbTimer < 0 && e.target && !e.target.flags.dead && (this.darkorbTimer = this.darkorb, this.bullets.newBullet(e, e.target, this.calculateDamage(e), !1, !1, !1, !0))), e.timer.attack -= t, e.timer.scan -= t, e.timer.ability -= t, this.model.runeEffects.healthRegen > 0 && this.updateZombieRegen(e, t), e.flags.burning && !e.immuneToBurns && this.updateBurns(e, t), e.timer.ability < 0 && (e.timer.ability = 4), e.target && !e.target.flags.dead || (e.state = be.lookingForTarget, e.timer.target = 0, e.timer.scan = 0), e.state) {
         case be.lookingForTarget:
           this.searchClosestTarget(e), e.target && (e.state = be.movingToTarget);
@@ -4559,6 +4580,27 @@ var Incremancer;
         }
       }
       e.necroAnimator && e.necroAnimator.update(t)
+    }
+    updateChannelingCreature(e, t) {
+      this.boneshield > 0 && e.boneshield < this.boneshield && (e.boneshieldTimer -= t, e.boneshieldTimer < 0 && (e.boneshieldTimer = 10 / this.boneshield, e.boneshield++));
+      this.boneshield ? (e.boneshieldContainer.visible = !0, e.boneshieldContainer.update(e.boneshield), e.boneshieldContainer.rotation += t) : e.boneshieldContainer.visible = !1;
+      e.timer.attack -= t, e.timer.scan -= t, e.timer.ability -= t;
+      this.model.runeEffects.healthRegen > 0 && this.updateZombieRegen(e, t);
+      e.flags.burning && !e.immuneToBurns && this.updateBurns(e, t);
+      if (e.flags.dead) return void(e.channeling = !1, e.necroAnimator.update(t));
+      const x = this.graveyard.sprite.x,
+        y = this.graveyard.sprite.y + (this.graveyard.level > 2 ? 8 : 0),
+        dx = x - e.x,
+        dy = y - e.y,
+        distance = this.fastDistance(e.x, e.y, x, y);
+      e.target = null, e.targetVector = null, e.state = be.lookingForTarget;
+      if (distance > 1) {
+        const speed = Math.min(e.maxSpeed, 4 * distance);
+        e.xSpeed = dx / distance * speed, e.ySpeed = dy / distance * speed, e.x += e.xSpeed * t, e.y += e.ySpeed * t, e.channeling = !1
+      } else {
+        e.position.set(x, y), e.xSpeed = 0, e.ySpeed = 0, e.channeling = !0, e.necroAnimator.facing = "S", e.necroAnimator.markCast()
+      }
+      e.zIndex = e.y, e.necroAnimator.update(t)
     }
     killingBlow(e) {
       this.killingBlowParts && ((() => { const amt = this.killingBlowParts * this.partFactory.factoryStats().partsPerSec;
@@ -6874,7 +6916,8 @@ var Incremancer;
     }, c.showBreakdown = false, c.bd = null, c.resourceBreakdown = function() {
       var m = c.model, pd = m.persistentData;
       var bd = {};
-      var baseEnergy = m.energySpellMultiplier * m.energyRate;
+      var channelEnergy = m.skeleton.getChannelEnergyBonus();
+      var baseEnergy = m.energySpellMultiplier * (m.energyRate + channelEnergy);
       var collectorCost = pd.boneCollectors || 0;
       var spiderCost = (pd.spiders || 0) * 10;
       var harpyCost = pd.harpies || 0;
@@ -6885,6 +6928,7 @@ var Incremancer;
       if (m.strapemRank > 0) harpyCost *= Math.pow(10, m.strapemRank);
       bd.energy = {
         base: m.energyRate,
+        channel: channelEnergy,
         spellMult: m.energySpellMultiplier,
         gross: baseEnergy,
         collectors: -collectorCost,
@@ -7435,6 +7479,11 @@ var Incremancer;
       itemsFilters: { se: [], r: [], t: [] },
       changeTab(e) {
         this.tab = e
+      },
+      isChanneling: () => !!i.persistent.channelEnergy,
+      channelEnergyRate: () => i.potentialChannelEnergyRate(),
+      toggleChanneling() {
+        i.setChannelEnergy(!i.persistent.channelEnergy), c.model.sendMessage(i.persistent.channelEnergy ? "NecroMage is channeling at the graveyard." : "NecroMage returns to combat.", "chat-spell")
       },
       equipped: [],
       show() {

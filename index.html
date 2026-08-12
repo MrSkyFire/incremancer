@@ -31,9 +31,9 @@
     <script src="js/lz-string.min.js"></script>
     <script src="js/pixi-legacy.min.js"></script>
     <script src="js/angular.min.js"></script>
-    <script src="dist/bundle.js?v=v1.2.4-necromage-ui"></script>
+    <script src="dist/bundle.js?v=v1.2.5-necromage-channel"></script>
     <script src="js/champion-progression.js"></script>
-    <link rel="stylesheet" type="text/css" href="zombiemancer.css?v=v1.2.4-necromage-ui">
+    <link rel="stylesheet" type="text/css" href="zombiemancer.css?v=v1.2.5-necromage-channel">
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon"/>
   </head>
   <body ng-controller="ZombieController as zm">
@@ -68,7 +68,7 @@
         </div>
         <button class="breakdown-toggle" ng-if="zm.model.currentState == zm.model.states.playingLevel" ng-click="zm.showBreakdown = !zm.showBreakdown">{{zm.showBreakdown ? '▼' : '▶'}} Rates</button>
         <div class="resource-breakdown" ng-if="zm.showBreakdown && zm.bd">
-          <h4>Energy: {{zm.bd.energy.net|decimal}}/s</h4>
+          <h4>Energy: {{zm.bd.energy.net|decimal}}/s <span ng-if="zm.bd.energy.channel > 0">(+{{zm.bd.energy.channel|decimal}} Necro)</span></h4>
           <div class="bd-detail"><span>Base {{zm.bd.energy.base|decimal}}/s</span><span ng-if="zm.bd.energy.spellMult > 1"> ×{{zm.bd.energy.spellMult}} spell</span><span ng-if="zm.bd.energy.collectors < 0"> | Collectors {{zm.bd.energy.collectors}}</span><span ng-if="zm.bd.energy.harpies < 0"> | Harpies {{zm.bd.energy.harpies}}</span><span ng-if="zm.bd.energy.spiders < 0"> | Spiders {{zm.bd.energy.spiders}}</span></div>
           <h4 ng-if="zm.bd.brains.rate > 0">Brains: {{zm.bd.brains.rate|decimal}}/s <span ng-if="zm.bd.brains.mod > 1">(×{{zm.bd.brains.mod|decimal}})</span></h4>
           <h4 ng-if="zm.bd.bones.rate > 0">Bones: {{zm.bd.bones.rate|decimal}}/s <span ng-if="zm.bd.bones.mod > 1">(×{{zm.bd.bones.mod|decimal}})</span></h4>
