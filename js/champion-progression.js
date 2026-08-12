@@ -1,4 +1,4 @@
-/* NecroMage progression + animation layer. */
+/* NecroMage progression + battlefield animation layer. */
 (function () {
   "use strict";
 
@@ -18,8 +18,9 @@
   }
 
   function installAnimations(necro) {
-    if (necro._necroAnimationInstalled) return;
-    necro._necroAnimationInstalled = true;
+    var proto = Object.getPrototypeOf(necro);
+    if (!proto || proto._necroAnimationInstalled) return;
+    proto._necroAnimationInstalled = true;
 
     var sequences = {
       idle:   { frames: [0], speed: 0.08, loop: true },
@@ -29,23 +30,66 @@
       hurt:   { frames: [5], speed: 0.22, loop: false },
       death:  { frames: [6], speed: 0.12, loop: false }
     };
-    var textureCache = {};
+
     var necroFrames = null;
+    var necroTextureSet = null;
+    var textureCache = {};
+    var knownInstances = [];
     var sheetLoadStarted = false;
+
+    function rememberInstance(instance) {
+      if (!instance) return;
+      if (knownInstances.indexOf(instance) === -1) knownInstances.push(instance);
+      if (necroTextureSet) installNativeTextureSet(instance);
+    }
+
+    function installNativeTextureSet(instance) {
+      if (!instance || !necroTextureSet) return;
+      instance.textures = necroTextureSet;
+
+      if (!instance.skeletons) return;
+      for (var i = 0; i < instance.skeletons.length; i++) {
+        var sprite = instance.skeletons[i];
+        if (!sprite) continue;
+        sprite.textureSet = necroTextureSet;
+        sprite.deadTexture = necroTextureSet.dead;
+        sprite._necroAnimState = null;
+        if (!sprite.flags || !sprite.flags.dead) setState(sprite, "idle");
+      }
+    }
 
     function buildNecroFrames(baseTexture) {
       if (necroFrames) return true;
-      if (!baseTexture || !baseTexture.valid) return false;
+      if (!baseTexture) return false;
 
-      necroFrames = [];
-      for (var i = 0; i < 7; i++) {
-        necroFrames.push(new PIXI.Texture(
-          baseTexture,
-          new PIXI.Rectangle(i * 64, 0, 64, 64)
-        ));
+      try {
+        necroFrames = [];
+        for (var i = 0; i < 7; i++) {
+          necroFrames.push(new PIXI.Texture(
+            baseTexture,
+            new PIXI.Rectangle(i * 64, 0, 64, 64)
+          ));
+        }
+      } catch (err) {
+        necroFrames = null;
+        console.warn("[Incremancer] NecroMage frame slicing failed", err);
+        return false;
       }
+
+      necroTextureSet = {
+        set: true,
+        down: [necroFrames[1], necroFrames[2]],
+        up: [necroFrames[1], necroFrames[2]],
+        right: [necroFrames[1], necroFrames[2]],
+        dead: [necroFrames[6]]
+      };
       textureCache = {};
-      console.log("[Incremancer] NecroMage sprite strip loaded and sliced");
+
+      for (var k = 0; k < knownInstances.length; k++) {
+        installNativeTextureSet(knownInstances[k]);
+      }
+
+      console.log("[Incremancer] NecroMage battlefield textures installed on SkeletonChampion prototype");
       return true;
     }
 
@@ -54,33 +98,33 @@
       sheetLoadStarted = true;
 
       try {
-        var sheetTexture = PIXI.Texture.from("sprites/necromage.png");
-        var baseTexture = sheetTexture.baseTexture;
-
-        if (buildNecroFrames(baseTexture)) return;
-
-        if (baseTexture && baseTexture.once) {
-          baseTexture.once("loaded", function () {
-            if (!buildNecroFrames(baseTexture)) {
-              console.warn("[Incremancer] NecroMage image loaded but could not be sliced; keeping fallback Champion sprite");
-            }
-          });
-          baseTexture.once("error", function (err) {
-            console.warn("[Incremancer] NecroMage PNG failed to load; keeping fallback Champion sprite", err);
-          });
-        }
-
-        var checks = 0;
-        var poll = setInterval(function () {
-          if (necroFrames || buildNecroFrames(baseTexture) || ++checks >= 100) {
-            clearInterval(poll);
-            if (!necroFrames) {
-              console.warn("[Incremancer] NecroMage PNG never became ready; keeping fallback Champion sprite");
-            }
+        var image = new Image();
+        image.onload = function () {
+          if (image.naturalWidth < 448 || image.naturalHeight < 64) {
+            console.warn("[Incremancer] NecroMage PNG has unexpected dimensions " + image.naturalWidth + "x" + image.naturalHeight);
+            return;
           }
-        }, 100);
+
+          try {
+            var baseTexture;
+            if (PIXI.BaseTexture && PIXI.BaseTexture.from) {
+              baseTexture = PIXI.BaseTexture.from(image);
+            } else {
+              baseTexture = PIXI.Texture.from(image).baseTexture;
+            }
+            if (!buildNecroFrames(baseTexture)) {
+              console.warn("[Incremancer] NecroMage PNG loaded but could not become battlefield textures");
+            }
+          } catch (err) {
+            console.warn("[Incremancer] NecroMage PNG loaded but PIXI texture creation failed", err);
+          }
+        };
+        image.onerror = function (err) {
+          console.warn("[Incremancer] NecroMage PNG failed to load; keeping Skeleton fallback", err);
+        };
+        image.src = "sprites/necromage.png?v=prototype2";
       } catch (err) {
-        console.warn("[Incremancer] Could not load NecroMage PNG; keeping fallback Champion sprite", err);
+        console.warn("[Incremancer] Could not start NecroMage image load; keeping Skeleton fallback", err);
       }
     }
 
@@ -88,17 +132,16 @@
       if (textureCache[state]) return textureCache[state];
       if (!necroFrames) return null;
       var seq = sequences[state];
-      textureCache[state] = seq.frames.map(function (i) {
-        return necroFrames[i];
-      });
+      textureCache[state] = seq.frames.map(function (i) { return necroFrames[i]; });
       return textureCache[state];
     }
 
     function setState(sprite, state) {
       var seq = sequences[state];
       var textures = texturesFor(state);
-      if (!textures) return false;
+      if (!textures || !sprite) return false;
       if (sprite._necroAnimState === state && sprite.textures === textures) return true;
+
       sprite._necroAnimState = state;
       sprite.textures = textures;
       sprite.animationSpeed = seq.speed;
@@ -114,52 +157,89 @@
       } else if (Math.abs(sprite.xSpeed || 0) > 0.5) {
         dir = sprite.xSpeed < 0 ? -1 : 1;
       }
+
       var base = Math.abs(sprite.scaling || 1) * 0.5;
       sprite.scale.x = dir * base;
       sprite.scale.y = base;
     }
 
-    function animate(sprite, dt, previousAttack) {
+    function animate(instance, sprite, dt, previousAttack) {
       if (!sprite) return;
+      rememberInstance(instance);
 
-      /* Keep the original Champion fully visible until the NecroMage PNG is ready. */
       if (!necroFrames) {
         loadNecroSheet();
         return;
       }
 
+      if (sprite.textureSet !== necroTextureSet) {
+        sprite.textureSet = necroTextureSet;
+        sprite.deadTexture = necroTextureSet.dead;
+        sprite._necroAnimState = null;
+      }
+
       if (sprite._necroPrevHealth === undefined) sprite._necroPrevHealth = sprite.health;
-      if (sprite.health < sprite._necroPrevHealth && !sprite.flags.dead) sprite._necroHurtTimer = 0.35;
+      if (sprite.health < sprite._necroPrevHealth && (!sprite.flags || !sprite.flags.dead)) {
+        sprite._necroHurtTimer = 0.35;
+      }
       sprite._necroPrevHealth = sprite.health;
 
       if (previousAttack !== undefined && sprite.timer && sprite.timer.attack > previousAttack + 0.5) {
         sprite._necroAttackTimer = 0.55;
       }
+
       sprite._necroAttackTimer = Math.max(0, (sprite._necroAttackTimer || 0) - dt);
       sprite._necroCastTimer = Math.max(0, (sprite._necroCastTimer || 0) - dt);
       sprite._necroHurtTimer = Math.max(0, (sprite._necroHurtTimer || 0) - dt);
 
       faceSprite(sprite);
-      if (sprite.flags.dead) return setState(sprite, "death");
+      if (sprite.flags && sprite.flags.dead) return setState(sprite, "death");
       if (sprite._necroHurtTimer > 0) return setState(sprite, "hurt");
       if (sprite._necroCastTimer > 0) return setState(sprite, "cast");
       if (sprite._necroAttackTimer > 0) return setState(sprite, "attack");
+
       var moving = Math.abs(sprite.xSpeed || 0) > 0.5 || Math.abs(sprite.ySpeed || 0) > 0.5;
       setState(sprite, moving ? "walk" : "idle");
     }
 
-    var oldUpdateCreature = necro.updateCreature.bind(necro);
-    necro.updateCreature = function (sprite, dt) {
+    var oldPopulate = proto.populate;
+    proto.populate = function () {
+      var result = oldPopulate.apply(this, arguments);
+      rememberInstance(this);
+      return result;
+    };
+
+    var oldSpawnCreature = proto.spawnCreature;
+    proto.spawnCreature = function () {
+      rememberInstance(this);
+      var sprite = oldSpawnCreature.apply(this, arguments);
+      if (necroTextureSet && sprite) {
+        sprite.textureSet = necroTextureSet;
+        sprite.deadTexture = necroTextureSet.dead;
+        setState(sprite, "idle");
+        faceSprite(sprite);
+      }
+      return sprite;
+    };
+
+    var oldUpdateCreature = proto.updateCreature;
+    proto.updateCreature = function (sprite, dt) {
+      rememberInstance(this);
       var previousAttack = sprite && sprite.timer ? sprite.timer.attack : undefined;
-      var result = oldUpdateCreature(sprite, dt);
-      animate(sprite, dt, previousAttack);
+      var result = oldUpdateCreature.apply(this, arguments);
+      animate(this, sprite, dt, previousAttack);
       return result;
     };
 
     function markCast() {
-      for (var i = 0; i < necro.skeletons.length; i++) {
-        var s = necro.skeletons[i];
-        if (s && !s.flags.dead) s._necroCastTimer = 0.8;
+      rememberInstance(necro);
+      for (var k = 0; k < knownInstances.length; k++) {
+        var instance = knownInstances[k];
+        if (!instance || !instance.skeletons) continue;
+        for (var i = 0; i < instance.skeletons.length; i++) {
+          var s = instance.skeletons[i];
+          if (s && (!s.flags || !s.flags.dead)) s._necroCastTimer = 0.8;
+        }
       }
     }
 
@@ -177,13 +257,14 @@
       };
     }
 
+    rememberInstance(necro);
     loadNecroSheet();
 
     var portraitAttempts = 0;
     function installPortrait() {
       var portrait = document.getElementById("skeleton");
       if (portrait) {
-        portrait.style.backgroundImage = "url('sprites/necromage.png')";
+        portrait.style.backgroundImage = "url('sprites/necromage.png?v=prototype2')";
         portrait.style.backgroundRepeat = "no-repeat";
         portrait.style.backgroundSize = "700% 100%";
         portrait.style.backgroundPosition = "0 0";
@@ -294,7 +375,7 @@
       return Math.min(100, Math.round(100 * necro.persistent.killProgress / necro.killsForNextLevel()));
     };
 
-    console.log("[Incremancer] NecroMage progression + animations installed");
+    console.log("[Incremancer] NecroMage progression + global battlefield animations installed");
   }
 
   angular.module("zombieApp").run(["$rootScope", "$timeout", function ($rootScope, $timeout) {
