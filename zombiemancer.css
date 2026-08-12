@@ -45,8 +45,10 @@ div.shop {
   right:0;
   padding:10px;
   height: calc(100% - 20px);
-  background-color: rgba(10,60,10,1);
-  box-shadow: inset 2px 2px 15px #131;
+  background: linear-gradient(180deg, rgba(6, 15, 18, 0.72), rgba(4, 8, 12, 0.66));
+  box-shadow: inset 2px 2px 15px rgba(24, 68, 52, 0.45), -6px 0 18px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
   width:20%;
   min-width: 310px;
   display: flex;
@@ -211,7 +213,7 @@ button.info {
 }
 
 div.shop div.upgrade, div.shop div.bone-collectors {
-  background-color: rgba(20,30,20,0.8);
+  background-color: rgba(12, 20, 19, 0.94);
   padding:10px;
   margin-bottom:10px;
   position: relative;
@@ -793,21 +795,21 @@ div.spells > div.skeleton {
   left:0;
   top:100%;
   cursor: pointer;
-  background: rgba(0,0,0,0.5);
-  background-image: url("images/skeleton.png");
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-position: center 5px;
-  image-rendering: -moz-crisp-edges;
-  image-rendering: -webkit-crisp-edges;
-  image-rendering: pixelated;
-  image-rendering: crisp-edges;
+  background: rgba(2, 5, 8, 0.68);
+  overflow: hidden;
 }
 
 div.skeleton > .bg {
   position: absolute;
-  width: 100%;
+  width: 5em;
   height: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-image: url("sprites/necromage-hd.png");
+  background-repeat: no-repeat;
+  background-size: 800% 600%;
+  background-position: 0 0;
+  image-rendering: auto;
 }
 div.skeleton:hover {
   color: #ff3;
