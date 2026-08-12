@@ -1,4 +1,4 @@
-const FORK_VERSION = "v1.2.8";
+const FORK_VERSION = "v1.2.9";
 const FORK_VERSION_DATE = "2026-08-12";
 console.log("[Incremancer fork] " + FORK_VERSION + " (" + FORK_VERSION_DATE + ")");
 var Incremancer;
@@ -223,6 +223,7 @@ var Incremancer;
     reset(role = this.role, tint = 0xffffff) {
       this.role = role;
       this.tint = tint;
+      this.facing = DarkCityNpcAnimator.directions[Math.floor(Math.random() * DarkCityNpcAnimator.directions.length)];
       this.key = "";
       this.hurtTime = 0;
       this.attackTime = 0;
@@ -3564,7 +3565,7 @@ var Incremancer;
     changeState(e, t) {
       switch (t) {
         case ce.standing:
-          e.gotoAndStop(0), e.maxSpeed = this.maxWalkSpeed, e.timer.standing = this.randomSecondsToStand();
+          e.gotoAndStop(0), e.xSpeed = 0, e.ySpeed = 0, e.maxSpeed = this.maxWalkSpeed, e.timer.standing = this.randomSecondsToStand();
           break;
         case ce.walking:
           e.play(), e.maxSpeed = this.maxWalkSpeed;
@@ -3703,7 +3704,7 @@ var Incremancer;
     changeState(e, t) {
       switch (t) {
         case ue.standing:
-          e.gotoAndStop(0);
+          e.gotoAndStop(0), e.xSpeed = 0, e.ySpeed = 0;
           break;
         case ue.walking:
           e.play(), e.maxSpeed = this.maxWalkSpeed;
@@ -3847,7 +3848,7 @@ var Incremancer;
     changeState(e, t) {
       switch (t) {
         case pe.standing:
-          e.gotoAndStop(0);
+          e.gotoAndStop(0), e.xSpeed = 0, e.ySpeed = 0;
           break;
         case pe.walking:
           e.play(), e.maxSpeed = this.maxWalkSpeed;
