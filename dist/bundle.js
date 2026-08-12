@@ -377,7 +377,7 @@ var Incremancer;
             }), y = new PIXI.Sprite(f), y.visible = !1, y.alpha = 0, m.addChild(y), c.addChild(u), c.addChild(p), c.addChild(g), c.addChild(b), e.stage.addChild(c), e.stage.addChild(m), c.interactive = !0, c.interactiveChildren = !1, c.on("pointerdown", z), c.on("pointerup", I), c.on("pointerupoutside", I), c.on("pointermove", H), c.on("click", E), c.on("tap", E), document.getElementsByTagName("canvas")[0].onwheel = L, document.getElementsByTagName("canvas")[0].oncontextmenu = function(e) {
               e.preventDefault()
             }
-          }(e), e.loader.add("sprites/ground.json").add("sprites/megagraveyard.png").add("sprites/graveyard.json").add("sprites/buildings.json").add("sprites/humans.json").add("sprites/cop.json").add("sprites/dogs.json").add("sprites/army.json").add("sprites/doctor.json").add("sprites/zombie.json").add("sprites/golem.json").add("sprites/bonecollector.json").add("sprites/harpy.json").add("sprites/objects2.json").add("sprites/fenceposts.json").add("sprites/trees2.json").add("sprites/fortress.json").add("sprites/tank.json").add("sprites/skeleton.json").add("sprites/necromage-hd.json").add("sprites/shadow-humanoid.json?v=v1.1.3-facing-fix").load((function() {
+          }(e), e.loader.add("sprites/ground.json").add("sprites/megagraveyard.png").add("sprites/graveyard.json").add("sprites/buildings.json").add("sprites/humans.json").add("sprites/cop.json").add("sprites/dogs.json").add("sprites/army.json").add("sprites/doctor.json").add("sprites/zombie.json").add("sprites/golem.json").add("sprites/bonecollector.json").add("sprites/harpy.json").add("sprites/objects2.json").add("sprites/fenceposts.json").add("sprites/trees2.json").add("sprites/fortress.json").add("sprites/tank.json").add("sprites/skeleton.json").add("sprites/necromage-hd.json").add("sprites/shadow-humanoid.json?v=v1.1.4-shadow-cursor").load((function() {
             v.app = e, N(), x = new PIXI.TilingSprite(PIXI.Texture.from("grass.png")), x.texture.baseTexture.mipmap = PIXI.MIPMAP_MODES.OFF, x.width = P.x, x.height = P.y, GameModel.getInstance().grassSprite = x, x.tint = GameModel.getInstance().persistentData.backgroundTint || 16777215, u.addChild(x), v.setupLevel(), setTimeout((function() {
               Z(!0)
             })), e.ticker.add((t => {
@@ -3938,8 +3938,8 @@ var Incremancer;
       }
       if (!this.zombieCursor) {
         this.zombieCursor = new PIXI.Container;
-        const e = new PIXI.Sprite(PIXI.Texture.from("zombie1_1.png"));
-        e.alpha = .6, e.scale.x = e.scale.y = 1, e.anchor.set(35 / 80, 1), this.zombieCursorText = new PIXI.Text("1", {
+        const e = new PIXI.Graphics, t = new PIXI.Sprite(ShadowHumanoidAnimator.texture("S", "idle"));
+        e.lineStyle(.35, 0x54ffd2, .9), e.beginFill(0x0b3029, .35), e.drawEllipse(0, 0, 4, 1.5), e.endFill(), t.alpha = .78, t.scale.set(2 * ShadowHumanoidAnimator.displayScale / this.zombieCursorScale), t.anchor.set(.5, 360 / 384), t.roundPixels = !1, this.zombieCursorText = new PIXI.Text("1", {
           fontFamily: "sans-serif",
           fontSize: 40,
           fill: "#FFF",
@@ -3949,7 +3949,7 @@ var Incremancer;
         }), this.zombieCursorText.anchor = {
           x: .5,
           y: 1
-        }, this.zombieCursorText.scale.x = this.zombieCursorText.scale.y = .1, this.zombieCursorText.y = -9, this.zombieCursorText.visible = !1, this.zombieCursorText.alpha = .7, this.zombieCursor.addChild(e), this.zombieCursor.addChild(this.zombieCursorText), m.addChild(this.zombieCursor)
+        }, this.zombieCursorText.scale.x = this.zombieCursorText.scale.y = .1, this.zombieCursorText.y = -9, this.zombieCursorText.visible = !1, this.zombieCursorText.alpha = .7, this.zombieCursor.addChild(e), this.zombieCursor.addChild(t), this.zombieCursor.addChild(this.zombieCursorText), m.addChild(this.zombieCursor)
       }
     }
     createZombie(e, t, s = !1, forceProdigy = !1) {
