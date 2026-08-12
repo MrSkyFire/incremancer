@@ -2,7 +2,7 @@
 
 Idle Necromancer Game — a unified fork combining features from CirusDane's and FrAmed46's mods.
 
-<!-- Pages deployment trigger: 2026-08-11 -->
+<!-- Pages deployment trigger: 2026-08-11-2 -->
 
 ## Fork History
 
