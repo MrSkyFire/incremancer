@@ -1,4 +1,4 @@
-/* Skeleton Champion kill progression prototype.
+/* NecroMage progression layer.
  * Loaded after the main bundle. Registers an Angular run hook before bootstrap.
  */
 (function () {
@@ -20,43 +20,59 @@
   }
 
   function install(controller, $rootScope) {
-    var champion = controller.model.skeleton;
-    if (!champion || champion._killProgressionInstalled) return;
-    champion._killProgressionInstalled = true;
+    var necro = controller.model.skeleton;
+    if (!necro || necro._killProgressionInstalled) return;
+    necro._killProgressionInstalled = true;
 
-    var p = champion.persistent;
+    var p = necro.persistent;
 
-    // This fork is built around the Champion, so recruit him immediately on every save.
+    // This fork is built around the NecroMage, so recruit him immediately on every save.
     if (!p.skeletons || p.skeletons < 1) {
       p.skeletons = 1;
       p.xpRate = Math.max(1, p.xpRate || 0);
-      champion.model.sendMessage("Skeleton Champion joins the fight!", "chat-levelup");
-      champion.upgrades.applyUpgrades();
-      champion.model.saveData();
+      necro.model.sendMessage("NecroMage joins the fight!", "chat-levelup");
+      necro.upgrades.applyUpgrades();
+      necro.model.saveData();
     }
 
     p.killProgress = p.killProgress || 0;
     p.totalKills = p.totalKills || 0;
 
-    champion.killsForNextLevel = function () {
+    necro.killsForNextLevel = function () {
       return Math.max(10, Math.round(10 * Math.pow(this.persistent.level, 1.35)));
     };
 
-    champion.spellProgression = function () {
+    // Core spells unlock early. Manual casts gain duration from NecroMage level;
+    // automatic casts keep base duration and gain proc chance from NecroMage level.
+    necro.spellProgression = function () {
       var level = this.persistent.level;
       return [
-        { id: 1, name: "Time Warp", unlockLevel: 5, unlocked: level >= 5, chance: Math.min(0.50, 0.01 + level * 0.005), cap: 0.50 },
-        { id: 2, name: "Energy Charge", unlockLevel: 10, unlocked: level >= 10, chance: Math.min(0.45, 0.005 + level * 0.0045), cap: 0.45 },
-        { id: 5, name: "Gigazombies", unlockLevel: 15, unlocked: level >= 15, chance: Math.min(0.35, 0.005 + level * 0.003), cap: 0.35 }
+        { id: 1, name: "Time Warp", unlockLevel: 1, unlocked: level >= 1, chance: Math.min(0.25, 0.01 + (level - 1) * 0.0025), cap: 0.25 },
+        { id: 2, name: "Energy Charge", unlockLevel: 3, unlocked: level >= 3, chance: Math.min(0.20, 0.005 + Math.max(0, level - 3) * 0.002), cap: 0.20 },
+        { id: 5, name: "Gigazombies", unlockLevel: 7, unlocked: level >= 7, chance: Math.min(0.15, 0.005 + Math.max(0, level - 7) * 0.0015), cap: 0.15 }
       ];
     };
 
-    champion.tryProgressionSpells = function () {
+    necro.manualDurationBonus = function () {
+      // +1 second every 2 NecroMage levels. This stacks with the Endurance talent.
+      return Math.floor(Math.max(0, this.persistent.level - 1) / 2);
+    };
+
+    necro.syncSpellUnlocks = function () {
+      var spells = this.spellProgression();
+      for (var i = 0; i < spells.length; i++) {
+        var live = this.spells.getSpell ? this.spells.getSpell(spells[i].id) : this.spells.spellMap.get(spells[i].id);
+        if (live && spells[i].unlocked) live.unlocked = true;
+      }
+    };
+
+    necro.tryProgressionSpells = function () {
       if (this.spellTimer >= 0) return;
       var spells = this.spellProgression();
       for (var x = 0; x < spells.length; x++) {
         var spell = spells[x];
         if (spell.unlocked && Math.random() < spell.chance) {
+          // No-mana casts intentionally do NOT receive the manual duration bonus.
           this.spells.castSpellNoMana(spell.id);
           this.spellTimer = 3;
           return;
@@ -64,50 +80,81 @@
       }
     };
 
-    // Personal Champion kills are now the only source of Champion levels.
-    champion.addXp = function () {};
-
-    var oldKillingBlow = champion.killingBlow.bind(champion);
-    champion.killingBlow = function (target) {
-      oldKillingBlow(target);
+    necro.gainKill = function () {
       this.persistent.totalKills++;
       this.persistent.killProgress++;
 
       while (this.persistent.killProgress >= this.killsForNextLevel()) {
-        this.persistent.killProgress -= this.killsForNextLevel();
+        var needed = this.killsForNextLevel();
+        this.persistent.killProgress -= needed;
         this.persistent.level++;
         this.upgrades.applyUpgrades();
-        this.model.sendMessage("Skeleton Champion reached level " + this.persistent.level + "!", "chat-levelup");
+        this.syncSpellUnlocks();
+        this.model.sendMessage("NecroMage reached level " + this.persistent.level + "!", "chat-levelup");
       }
 
       this.tryProgressionSpells();
     };
 
+    // The original Champion XP hook is invoked from the global human-death path.
+    // Treat each death notification as one NecroMage kill-credit, regardless of who dealt it.
+    necro.addXp = function () {
+      this.gainKill();
+    };
+
+    // Do not double-count NecroMage personal kills: the global death hook above owns progression.
+    // Keep the original killingBlow implementation for its loot/prestige/talent effects.
+
     // Equipment keeps its normal stats, but no longer supplies automatic spell rolls.
-    var oldApplyItems = champion.applyItemUpgrades.bind(champion);
-    champion.applyItemUpgrades = function () {
+    var oldApplyItems = necro.applyItemUpgrades.bind(necro);
+    necro.applyItemUpgrades = function () {
       oldApplyItems();
       this.randomSpells = [];
     };
-    champion.randomSpells = [];
+    necro.randomSpells = [];
+
+    // Add NecroMage level duration only to player/manual casts.
+    // Existing Endurance timeExtension is preserved and stacks with this bonus.
+    if (!necro.spells._necroManualDurationInstalled) {
+      necro.spells._necroManualDurationInstalled = true;
+      var oldManualCast = necro.spells.castSpell.bind(necro.spells);
+      necro.spells.castSpell = function (spell) {
+        var oldExtension = this.timeExtension;
+        this.timeExtension = oldExtension + necro.manualDurationBonus();
+        try {
+          return oldManualCast(spell);
+        } finally {
+          this.timeExtension = oldExtension;
+        }
+      };
+    }
+
+    necro.syncSpellUnlocks();
 
     controller.skeletonMenu.killsForNextLevel = function () {
-      return champion.killsForNextLevel();
+      return necro.killsForNextLevel();
     };
     controller.skeletonMenu.spellProgression = function () {
-      return champion.spellProgression();
+      return necro.spellProgression();
     };
     controller.skeletonMenu.xpPercent = function () {
-      return Math.min(100, Math.round(100 * champion.persistent.killProgress / champion.killsForNextLevel()));
+      return Math.min(100, Math.round(100 * necro.persistent.killProgress / necro.killsForNextLevel()));
     };
 
-    // Add a visible Progression tab to the Champion menu without rebuilding the bundled Angular template.
     function ensureProgressionUI() {
       var hold = document.getElementById("champ-hold");
       if (!hold) return;
 
       var title = hold.querySelector(".shop-title h2");
       if (!title) return;
+
+      // Rename the character in the existing menu without rebuilding the bundled template.
+      var textNodes = title.childNodes;
+      for (var n = 0; n < textNodes.length; n++) {
+        if (textNodes[n].nodeType === 3 && /Skeleton Champion/i.test(textNodes[n].nodeValue || "")) {
+          textNodes[n].nodeValue = (textNodes[n].nodeValue || "").replace(/Skeleton Champion/gi, "NecroMage");
+        }
+      }
 
       var button = title.querySelector("[data-champion-progression-tab]");
       if (!button) {
@@ -136,33 +183,33 @@
       }
 
       panel.style.display = "block";
-      var needed = champion.killsForNextLevel();
-      var progress = champion.persistent.killProgress || 0;
-      var total = champion.persistent.totalKills || 0;
-      var spells = champion.spellProgression();
-      var html = "<h3>Champion Progression</h3>";
-      html += "<p><strong>Level " + champion.persistent.level + "</strong><br>" + progress + " / " + needed + " personal kills to next level<br>Lifetime Champion kills: " + total + "</p>";
-      html += "<p>Only kills landed by the Skeleton Champion count toward levels. Dark Orb finishing blows count too.</p>";
-      html += "<h4>Spell Proc Progression</h4><ul>";
+      var needed = necro.killsForNextLevel();
+      var progress = necro.persistent.killProgress || 0;
+      var total = necro.persistent.totalKills || 0;
+      var spells = necro.spellProgression();
+      var durationBonus = necro.manualDurationBonus();
+      var html = "<h3>NecroMage Progression</h3>";
+      html += "<p><strong>Level " + necro.persistent.level + "</strong><br>" + progress + " / " + needed + " kills to next level<br>Total kills credited: " + total + "</p>";
+      html += "<p>All human kills count toward NecroMage progression, no matter which undead unit lands the finishing blow.</p>";
+      html += "<h4>Spell Mastery</h4>";
+      html += "<p>Manual casts gain <strong>+" + durationBonus + "s</strong> duration from NecroMage level (plus Endurance). Auto-casts use normal duration and scale their trigger chance with NecroMage level.</p><ul>";
       for (var i = 0; i < spells.length; i++) {
         var s = spells[i];
         if (s.unlocked) {
-          html += "<li><strong>" + s.name + "</strong>: " + (s.chance * 100).toFixed(1) + "% proc chance (cap " + (s.cap * 100).toFixed(0) + "%)</li>";
+          html += "<li><strong>" + s.name + "</strong>: unlocked — " + (s.chance * 100).toFixed(1) + "% auto-cast chance (cap " + (s.cap * 100).toFixed(0) + "%)</li>";
         } else {
-          html += "<li><strong>" + s.name + "</strong>: unlocks at Champion level " + s.unlockLevel + "</li>";
+          html += "<li><strong>" + s.name + "</strong>: unlocks at NecroMage level " + s.unlockLevel + "</li>";
         }
       }
-      html += "</ul><p>Armor no longer grants automatic spell procs; these chances now come from Champion level.</p>";
+      html += "</ul><p>Armor no longer grants automatic spell procs.</p>";
       panel.innerHTML = html;
     }
 
     ensureProgressionUI();
     setInterval(ensureProgressionUI, 250);
-    console.log("[Incremancer] Champion kill progression installed");
+    console.log("[Incremancer] NecroMage progression installed");
   }
 
-  // debugInfoEnabled(false) prevents angular.element(...).controller() from working.
-  // Register before bootstrap and use Angular's own root scope to locate controllerAs `zm`.
   angular.module("zombieApp").run(["$rootScope", "$timeout", function ($rootScope, $timeout) {
     var attempts = 0;
     function boot() {
@@ -172,7 +219,7 @@
         return;
       }
       if (++attempts < 80) $timeout(boot, 100, false);
-      else console.error("[Incremancer] Champion progression could not find ZombieController");
+      else console.error("[Incremancer] NecroMage progression could not find ZombieController");
     }
     $timeout(boot, 0, false);
   }]);
