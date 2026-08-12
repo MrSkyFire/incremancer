@@ -30,11 +30,38 @@
       death:  { frames: [6], speed: 0.12, loop: false }
     };
     var textureCache = {};
+    var atlasLoadStarted = false;
+
+    function cachedTexture(name) {
+      return PIXI && PIXI.utils && PIXI.utils.TextureCache ? PIXI.utils.TextureCache[name] : null;
+    }
+
+    function loadNecroAtlas() {
+      if (cachedTexture("necro0.png") || atlasLoadStarted) return;
+      atlasLoadStarted = true;
+      try {
+        var loader = new PIXI.Loader();
+        if (loader.onError && loader.onError.add) {
+          loader.onError.add(function (err) {
+            console.warn("[Incremancer] NecroMage atlas failed to load; keeping fallback Champion sprite", err);
+          });
+        }
+        loader.add("necromage-atlas", "sprites/necromage.json").load(function () {
+          if (cachedTexture("necro0.png")) {
+            console.log("[Incremancer] NecroMage sprite atlas loaded");
+          } else {
+            console.warn("[Incremancer] NecroMage atlas finished without registered frames; keeping fallback Champion sprite");
+          }
+        });
+      } catch (err) {
+        console.warn("[Incremancer] Could not start NecroMage atlas loader; keeping fallback Champion sprite", err);
+      }
+    }
 
     function texturesFor(state) {
       if (textureCache[state]) return textureCache[state];
       var seq = sequences[state];
-      if (!PIXI.utils.TextureCache["necro" + seq.frames[0] + ".png"]) return null;
+      if (!cachedTexture("necro" + seq.frames[0] + ".png")) return null;
       textureCache[state] = seq.frames.map(function (i) {
         return PIXI.Texture.from("necro" + i + ".png");
       });
@@ -44,13 +71,14 @@
     function setState(sprite, state) {
       var seq = sequences[state];
       var textures = texturesFor(state);
-      if (!textures) return;
-      if (sprite._necroAnimState === state && sprite.textures === textures) return;
+      if (!textures) return false;
+      if (sprite._necroAnimState === state && sprite.textures === textures) return true;
       sprite._necroAnimState = state;
       sprite.textures = textures;
       sprite.animationSpeed = seq.speed;
       sprite.loop = seq.loop;
       sprite.gotoAndPlay(0);
+      return true;
     }
 
     function faceSprite(sprite) {
@@ -67,6 +95,14 @@
 
     function animate(sprite, dt, previousAttack) {
       if (!sprite) return;
+
+      /* Until the separate NecroMage atlas is ready, leave the original Champion
+       * texture, direction and scale completely untouched. This is the hard fallback. */
+      if (!cachedTexture("necro0.png")) {
+        loadNecroAtlas();
+        return;
+      }
+
       if (sprite._necroPrevHealth === undefined) sprite._necroPrevHealth = sprite.health;
       if (sprite.health < sprite._necroPrevHealth && !sprite.flags.dead) sprite._necroHurtTimer = 0.35;
       sprite._necroPrevHealth = sprite.health;
@@ -115,6 +151,8 @@
         return currentFree(spellId);
       };
     }
+
+    loadNecroAtlas();
 
     var portraitAttempts = 0;
     function installPortrait() {
