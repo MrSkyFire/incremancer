@@ -57,14 +57,19 @@ var Incremancer;
       this.rect(ctx, staffX - 3, staffY - 3, 7, 7, "#d8cfb4"), this.rect(ctx, staffX - 2, staffY - 2, 5, 5, "#29202b"), this.magic(ctx, staffX + side, staffY - 4, frame, state === "cast");
       state === "cast" && frame && this.magic(ctx, cx + Math.round(v[0] * (9 + 2 * frame)), bodyY + 1 + Math.round(4 * v[1]), frame, !0);
       if (state === "attack" && frame === 2) { const x = cx + Math.round(15 * v[0]), y = bodyY + Math.round(8 * v[1]); this.magic(ctx, x, y, frame); for (let i = 0; i < 4; i++) this.rect(ctx, x + 3 * i * v[0], y + 3 * i * v[1], 2, 2, "#39f5a0") }
-      state === "hurt" && (ctx.globalAlpha = frame ? .12 : .28, this.rect(ctx, 10, 8, 28, 34, "#ff5a76"), ctx.globalAlpha = 1);
+      if (state === "hurt") {
+        const hitSide = frame ? 1 : -1;
+        this.rect(ctx, cx + 10 * hitSide, hoodY - 4, 2, 5, "#ff5a76"),
+          this.rect(ctx, cx + 8 * hitSide, hoodY + 3, 3, 2, "#ffb06b"),
+          this.rect(ctx, cx + 11 * hitSide, bodyY + 9, 2, 4, "#ff5a76")
+      }
       if (state === "death") {
-        ctx.clearRect(0, 0, 48, 48), ctx.globalAlpha = .3, this.rect(ctx, 9, 42, 30, 3, "#000"), ctx.globalAlpha = Math.max(.35, 1 - .18 * frame);
+        ctx.clearRect(0, 0, 48, 48), ctx.globalAlpha = .3, this.rect(ctx, 9, 42, 30, 3, "#000"), ctx.globalAlpha = 1;
         const fall = 5 * frame, left = v[0] < 0;
         frame < 2 ? (this.polygon(ctx, [[15 + (left ? -fall : fall), 21 + fall], [30 + (left ? -fall : fall), 22 + fall], [34, 40], [12, 40]], "#4d176e"),
           this.rect(ctx, 18 + (left ? -fall : fall), 19 + fall, 9, 7, "#d8cfb5")) : (this.rect(ctx, 9, 35 + frame, 31, 5, "#170a22"),
           this.rect(ctx, 12, 33 + frame, 25, 5, "#4d176e"), this.rect(ctx, left ? 12 : 30, 31 + frame, 7, 5, "#d8cfb5"));
-        frame === 3 && (ctx.globalAlpha = .5, this.rect(ctx, 15, 29, 3, 3, "#2cff9a"), this.rect(ctx, 23, 27, 2, 2, "#2cff9a"))
+        frame === 3 && (ctx.globalAlpha = .5, this.rect(ctx, 15, 29, 3, 3, "#2cff9a"), this.rect(ctx, 23, 27, 2, 2, "#2cff9a")), ctx.globalAlpha = 1
       }
       return PIXI.Texture.from(canvas)
     }
