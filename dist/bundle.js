@@ -177,6 +177,23 @@ var Incremancer;
     }
   }
 
+  class ShadowPortalAnimation {
+    static draw(graphics, progress, phase, cursor = !1) {
+      graphics.clear();
+      const fade = cursor ? 1 : Math.min(1, progress / .12) * Math.pow(1 - progress, .7);
+      const pulse = cursor ? .5 + .5 * Math.sin(phase * 4.5) : Math.sin(Math.PI * Math.min(1, progress));
+      const radius = cursor ? 4.1 + .35 * pulse : 3 + 4 * pulse;
+      graphics.lineStyle(.75, 0x080511, .95 * fade), graphics.beginFill(0x030207, .72 * fade), graphics.drawEllipse(0, 0, radius, 1.55 + .35 * pulse), graphics.endFill();
+      graphics.lineStyle(.4, 0x54ffd2, (.55 + .3 * pulse) * fade), graphics.drawEllipse(0, 0, radius - .55, 1.1 + .25 * pulse);
+      graphics.lineStyle(.3, 0x7d32a8, .55 * fade), graphics.drawEllipse(0, 0, 2.2 + .3 * pulse, .55 + .15 * pulse);
+      for (let i = 0; i < 4; i++) {
+        const angle = phase * (cursor ? .8 : 2.2) + i * Math.PI / 2;
+        const x = Math.cos(angle) * (radius - .8), y = Math.sin(angle) * .9;
+        graphics.lineStyle(.25, 0x54ffd2, .45 * fade), graphics.moveTo(x, y), graphics.lineTo(.58 * x, .45 * y)
+      }
+    }
+  }
+
   /* ================================================================
    *  UTILITY FUNCTIONS
    * ================================================================ */
@@ -275,7 +292,11 @@ var Incremancer;
   }
 
   function E(e) {
-    this.hasMoved || v.currentState != v.states.playingLevel || (Y.shift ? T.spawnAllZombies(e.data.getLocalPosition(this).x, e.data.getLocalPosition(this).y) : T.spawnZombie(e.data.getLocalPosition(this).x, e.data.getLocalPosition(this).y)), this.hasMoved = !1
+    if (!this.hasMoved && v.currentState == v.states.playingLevel) {
+      const t = e.data.getLocalPosition(this);
+      T.model.energy >= T.model.zombieCost && T.openShadowPortal(t.x, t.y), Y.shift ? T.spawnAllZombies(t.x, t.y) : T.spawnZombie(t.x, t.y)
+    }
+    this.hasMoved = !1
   }
 
   function A(e, t) {
@@ -3915,11 +3936,12 @@ var Incremancer;
    * ================================================================ */
   class Zombies {
     constructor() {
-      if (this.zombies = [], this.discardedZombies = [], this.aliveZombies = [], this.aliveHumans = [], this.zombiePartition = [], this.scaling = 2, this.moveTargetDistance = 15, this.attackDistance = 15, this.attackSpeed = 3, this.targetDistance = 100, this.fadeSpeed = .1, this.refundChance = 0, this.currId = 1, this.scanTime = 3, this.textures = [], this.dogTexture = [], this.deadDogTexture = [], this.maxSpeed = 10, this.zombieCursor = null, this.zombieCursorText = null, this.zombieCursorScale = 3, this.mouseOutOfBounds = !1, this.burnTickTimer = 5, this.bloodpact = 1, this.bloodborn = 0, this.gigamutagen = 0, this.gigamutationTimer = 10, this.smokeTimer = .3, this.fastDistance = i, this.magnitude = t, this.detonate = !1, this.super = !1, this.reactionTime = 0, this.graveyardAttackers = [], this.spaceNeeded = 3, Zombies.instance) return Zombies.instance;
+      if (this.zombies = [], this.discardedZombies = [], this.aliveZombies = [], this.aliveHumans = [], this.zombiePartition = [], this.scaling = 2, this.moveTargetDistance = 15, this.attackDistance = 15, this.attackSpeed = 3, this.targetDistance = 100, this.fadeSpeed = .1, this.refundChance = 0, this.currId = 1, this.scanTime = 3, this.textures = [], this.dogTexture = [], this.deadDogTexture = [], this.maxSpeed = 10, this.zombieCursor = null, this.zombieCursorPortal = null, this.zombieCursorText = null, this.zombieCursorScale = 3, this.portalPhase = 0, this.shadowPortals = [], this.mouseOutOfBounds = !1, this.burnTickTimer = 5, this.bloodpact = 1, this.bloodborn = 0, this.gigamutagen = 0, this.gigamutationTimer = 10, this.smokeTimer = .3, this.fastDistance = i, this.magnitude = t, this.detonate = !1, this.super = !1, this.reactionTime = 0, this.graveyardAttackers = [], this.spaceNeeded = 3, Zombies.instance) return Zombies.instance;
       Zombies.instance = this
     }
     populate() {
-      this.detonate = !1, this.super = !1, this.superMult = 10, this.speedBuff = 1;
+      for (let e = 0; e < this.shadowPortals.length; e++) b.removeChild(this.shadowPortals[e]), this.shadowPortals[e].destroy();
+      this.shadowPortals.length = 0, this.detonate = !1, this.super = !1, this.superMult = 10, this.speedBuff = 1;
       if (this.map = new LevelMap, this.model = GameModel.getInstance(), this.humans = new Humans, this.graveyard = new Graveyard, this.creatureFactory = new ae, this.smoke = new ot, this.blood = new _e, this.bones = new Bones, this.exclamations = new it, this.blasts = new nt, this.bullets = new rt, this.model.zombieCount = 0, 0 == this.textures.length) {
         for (let e = 0; e < 3; e++) {
           const t = [];
@@ -3938,8 +3960,8 @@ var Incremancer;
       }
       if (!this.zombieCursor) {
         this.zombieCursor = new PIXI.Container;
-        const e = new PIXI.Graphics, t = new PIXI.Sprite(ShadowHumanoidAnimator.texture("S", "idle"));
-        e.lineStyle(.35, 0x54ffd2, .9), e.beginFill(0x0b3029, .35), e.drawEllipse(0, 0, 4, 1.5), e.endFill(), t.alpha = .78, t.scale.set(2 * ShadowHumanoidAnimator.displayScale / this.zombieCursorScale), t.anchor.set(.5, 360 / 384), t.roundPixels = !1, this.zombieCursorText = new PIXI.Text("1", {
+        const e = new PIXI.Graphics;
+        this.zombieCursorPortal = e, ShadowPortalAnimation.draw(e, 0, 0, !0), this.zombieCursorText = new PIXI.Text("1", {
           fontFamily: "sans-serif",
           fontSize: 40,
           fill: "#FFF",
@@ -3949,7 +3971,7 @@ var Incremancer;
         }), this.zombieCursorText.anchor = {
           x: .5,
           y: 1
-        }, this.zombieCursorText.scale.x = this.zombieCursorText.scale.y = .1, this.zombieCursorText.y = -9, this.zombieCursorText.visible = !1, this.zombieCursorText.alpha = .7, this.zombieCursor.addChild(e), this.zombieCursor.addChild(t), this.zombieCursor.addChild(this.zombieCursorText), m.addChild(this.zombieCursor)
+        }, this.zombieCursorText.scale.x = this.zombieCursorText.scale.y = .1, this.zombieCursorText.y = -4, this.zombieCursorText.visible = !1, this.zombieCursorText.alpha = .7, this.zombieCursor.addChild(e), this.zombieCursor.addChild(this.zombieCursorText), m.addChild(this.zombieCursor)
       }
     }
     createZombie(e, t, s = !1, forceProdigy = !1) {
@@ -3976,6 +3998,18 @@ var Incremancer;
     spawnAllZombies(e, t) {
       const s = Math.min(Math.floor(this.model.energy / this.model.zombieCost), 100);
       for (let i = 0; i < s; i++) this.spawnZombie(e + 4 * (Math.random() - 1), t + 4 * (Math.random() - 1))
+    }
+    openShadowPortal(e, t) {
+      const s = new PIXI.Graphics;
+      s.position.set(e, t), s.life = 0, s.duration = .58, s.zIndex = t, this.shadowPortals.push(s), b.addChild(s), ShadowPortalAnimation.draw(s, 0, this.portalPhase)
+    }
+    updateShadowPortals(e) {
+      for (let t = this.shadowPortals.length - 1; t >= 0; t--) {
+        const s = this.shadowPortals[t];
+        s.life += e;
+        const i = s.life / s.duration;
+        i >= 1 ? (b.removeChild(s), s.destroy(), this.shadowPortals.splice(t, 1)) : ShadowPortalAnimation.draw(s, i, this.portalPhase)
+      }
     }
     damageZombie(e, t, s) {
       if (e.graveyard) this.graveyard.damageGraveyard(t);
@@ -4008,6 +4042,7 @@ var Incremancer;
       return t
     }
     update(e) {
+      this.portalPhase += e, this.zombieCursorPortal && ShadowPortalAnimation.draw(this.zombieCursorPortal, 0, this.portalPhase, !0), this.updateShadowPortals(e);
       this.maxSpeed = this.model.zombieSpeed, this.detonate && (this.maxSpeed *= 1.5), this.reactionTime = Math.max(.2, this.aliveZombies.length / 2e3);
       const t = [],
         s = [];
